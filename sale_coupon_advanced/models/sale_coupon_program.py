@@ -28,7 +28,7 @@ class SaleCouponProgram(models.Model):
     )
 
     def _check_promo_code(self, order, coupon_code):
-        order_count = self.order_count
+        order_count = self._get_order_count(order)
         if self.first_order_only and order_count:
             return {"error": _("Coupon can be used only for the first sale order!")}
         max_order_number = self.next_n_customer_orders
@@ -51,12 +51,11 @@ class SaleCouponProgram(models.Model):
 
     @api.model
     def _filter_programs_from_common_rules(self, order, next_order=False):
-
         initial_programs = self.browse(self.ids)
         self._force_sale_order_lines(initial_programs, order)
         programs = super()._filter_programs_from_common_rules(order, next_order)
-        programs = programs._filter_first_order_programs(order)
-        programs = programs._filter_n_first_order_programs()
+        self._filter_order_programs(order, self._filter_first_order_programs)
+        self._filter_order_programs(order, self._filter_n_first_order_programs)
         return programs
 
     def _force_sale_order_lines(self, programs, order):
@@ -70,6 +69,7 @@ class SaleCouponProgram(models.Model):
             ):
                 order.add_reward_line_values(program)
 
+    # FIXME: whats this? Original method does not exist on this model.
     def _remove_invalid_reward_lines(self):
         # TODO rollback forced lines which is not used for creation of reward
         # lines for other programs
@@ -83,39 +83,46 @@ class SaleCouponProgram(models.Model):
                     _("`Apply only on the next` should not be a negative value.")
                 )
 
-    def _get_order_count(self, order):
-        return self.env["sale.order"].search_count(
-            [
-                ("partner_id", "=", order.partner_id.id),
-                ("state", "!=", "cancel"),
-                ("id", "!=", order.id),
-            ]
-        )
+    def _get_partner_order_line_count_domain(self, order):
+        self.ensure_one()
+        partner_id = order.partner_id.commercial_partner_id.id
+        return [
+            ("product_id", "=", self.discount_line_product_id.id),
+            ("order_id.partner_id.commercial_partner_id", "=", partner_id),
+            ("order_id.state", "!=", "cancel"),
+        ]
 
-    def _filter_first_order_programs(self, order):
+    def _get_order_count(self, order):
+        self.ensure_one()
+        domain = self._get_partner_order_line_count_domain(order)
+        data = self.env["sale.order.line"].read_group(
+            domain, ["order_id"], ["order_id"]
+        )
+        return sum(m["order_id_count"] for m in data)
+
+    @api.model
+    def _filter_first_order_programs(self, program, order):
         """
         Filter programs where first_order_only is True,
         and the customer have already ordered before.
         """
-        # TODO: should First Order Programs really use different logic
-        # than N First Order Programs?..
-        # Also _get_order_count method is misleading, when there is
-        # field order_count which shows different count.
-        if self._get_order_count(order):
-            return self.filtered(lambda program: not program.first_order_only)
-        return self
+        return not (program._get_order_count(order) and program.first_order_only)
 
-    def _filter_n_first_order_programs(self):
+    @api.model
+    def _filter_n_first_order_programs(self, program, order):
         """
         Filter programs where next_n_customer_orders is set, and
         the max number of orders have already been reached by the customer.
         """
+        return not (
+            program.next_n_customer_orders
+            and program._get_order_count(order) >= program.next_n_customer_orders
+        )
+
+    def _filter_order_programs(self, order, predicate):
         filtered_programs = self.env[self._name]
         for program in self:
-            if (
-                program.next_n_customer_orders
-                and program.order_count >= program.next_n_customer_orders
-            ):
+            if not predicate(program, order):
                 continue
             filtered_programs |= program
         return filtered_programs

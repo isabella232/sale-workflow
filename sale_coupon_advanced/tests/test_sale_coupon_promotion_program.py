@@ -119,7 +119,7 @@ class TestProgramForFirstSaleOrder(TestSaleCouponCommon):
                         "product_uom": self.uom_unit.id,
                         "product_uom_qty": products[product],
                     },
-                ),
+                )
             )
 
         order.write({"order_line": order_lines})
@@ -246,5 +246,5 @@ class TestProgramForFirstSaleOrder(TestSaleCouponCommon):
         discounts = set(order2.order_line.mapped("name")) - {"Product B", "Product A"}
         self.assertEqual(len(discounts), 1, "Order should contain one discount")
         self.assertTrue(
-            "Free Product - Product B" in discounts.pop(), "Discount should be applied",
+            "Free Product - Product B" in discounts.pop(), "Discount should be applied"
         )

@@ -56,7 +56,6 @@ class SaleOrder(models.Model):
 
     def _create_new_no_code_promo_reward_lines(self):
         super()._create_new_no_code_promo_reward_lines()
-
         program = self._get_applicable_no_code_promo_program().filtered(
             lambda p: p.reward_type == "use_pricelist"
         )
