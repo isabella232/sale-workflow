@@ -15,7 +15,7 @@ class SaleCouponProgram(models.Model):
         help="Apply only on the first order of each client matching the conditions",
     )
 
-    first_n_customer_orders = fields.Integer(
+    next_n_customer_orders = fields.Integer(
         help="Maximum number of sales orders of the customer in which reward \
          can be provided",
         string="Apply only on the next ",
@@ -28,18 +28,16 @@ class SaleCouponProgram(models.Model):
     )
 
     def _check_promo_code(self, order, coupon_code):
-
-        order_count = self._get_order_count(order)
+        order_count = self.order_count
         if self.first_order_only and order_count:
             return {"error": _("Coupon can be used only for the first sale order!")}
-        max_order_number = self.first_n_customer_orders
+        max_order_number = self.next_n_customer_orders
         if max_order_number and order_count >= max_order_number:
             return {
                 "error": _(
                     "Coupon can be used only for the first {} sale order!"
                 ).format(max_order_number)
             }
-
         # Do not return product unordered error message if
         # `is_reward_product_forced` is selected
         message = _(
@@ -58,7 +56,7 @@ class SaleCouponProgram(models.Model):
         self._force_sale_order_lines(initial_programs, order)
         programs = super()._filter_programs_from_common_rules(order, next_order)
         programs = programs._filter_first_order_programs(order)
-        programs = programs._filter_n_first_order_programs(order)
+        programs = programs._filter_n_first_order_programs()
         return programs
 
     def _force_sale_order_lines(self, programs, order):
@@ -77,10 +75,10 @@ class SaleCouponProgram(models.Model):
         # lines for other programs
         return super._remove_invalid_reward_lines()
 
-    @api.constrains("first_n_customer_orders")
+    @api.constrains("next_n_customer_orders")
     def _constrains_first_n_orders_positive(self):
         for record in self:
-            if record.first_n_customer_orders < 0:
+            if record.next_n_customer_orders < 0:
                 raise exceptions.ValidationError(
                     _("`Apply only on the next` should not be a negative value.")
                 )
@@ -99,21 +97,24 @@ class SaleCouponProgram(models.Model):
         Filter programs where first_order_only is True,
         and the customer have already ordered before.
         """
+        # TODO: should First Order Programs really use different logic
+        # than N First Order Programs?..
+        # Also _get_order_count method is misleading, when there is
+        # field order_count which shows different count.
         if self._get_order_count(order):
             return self.filtered(lambda program: not program.first_order_only)
         return self
 
-    def _filter_n_first_order_programs(self, order):
+    def _filter_n_first_order_programs(self):
         """
-        Filter programs where first_n_customer_orders is set, and
+        Filter programs where next_n_customer_orders is set, and
         the max number of orders have already been reached by the customer.
         """
-        order_count = self._get_order_count(order)
         filtered_programs = self.env[self._name]
         for program in self:
             if (
-                program.first_n_customer_orders
-                and order_count >= program.first_n_customer_orders
+                program.next_n_customer_orders
+                and program.order_count >= program.next_n_customer_orders
             ):
                 continue
             filtered_programs |= program

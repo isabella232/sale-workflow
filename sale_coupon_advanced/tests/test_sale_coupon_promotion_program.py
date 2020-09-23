@@ -8,7 +8,6 @@ class TestProgramForFirstSaleOrder(TestSaleCouponCommon):
         super(TestProgramForFirstSaleOrder, self).setUp()
 
         self.env["sale.coupon.program"].search([]).write({"active": False})
-        self.env["sale.coupon"].search([]).write({"active": False})
 
         self.product_A = self.env["product.product"].create(
             {"name": "Product A", "list_price": 60, "sale_ok": True}
