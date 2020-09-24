@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_coupon_program_view_promo_program_form" model="ir.ui.view">
+        <field name="model">sale.coupon.program</field>
+        <field
+            name="inherit_id"
+            ref="sale_coupon.sale_coupon_program_view_promo_program_form"
+        />
+        <field name="arch" type="xml">
+            <field name="rule_date_to" position="after">
+                <field name="is_cumulative" />
+                <field name="first_order_only" />
+                <field
+                    name="next_n_customer_orders"
+                    attrs="{'invisible': [('first_order_only', '=', True)]}"
+                    class="oe_inline"
+                />
+                <span>orders of each client matching the conditions</span>
+            </field>
+            <xpath
+                expr="//group[@name='reward']/ancestor::group/group[4]"
+                position="attributes"
+            >
+                <attribute
+                    name="attrs"
+                >{'invisible': [('reward_type', '=', 'use_pricelist')]}</attribute>
+            </xpath>
+            <xpath
+                expr="//group[@name='reward']/ancestor::group/group[4]"
+                position="after"
+            >
+                <group>
+                    <field
+                        name="reward_pricelist_id"
+                        attrs="{'invisible': [('reward_type', 'in', ('discount', 'free_shipping', 'product'))], 'required': [('reward_type', '=', 'pricelist')]}"
+                        placeholder="Select reward pricelist"
+                    />
+                </group>
+            </xpath>
+            <field name="reward_product_id" position="before">
+                <field
+                    name="is_reward_product_forced"
+                    attrs="{'invisible': [('reward_type', 'in', ('discount', 'free_shipping'))], 'required': [('reward_type', '=', 'product')]}"
+                />
+            </field>
+        </field>
+    </record>
+    <record id="sale_coupon_program_view_tree" model="ir.ui.view">
+        <field name="model">sale.coupon.program</field>
+        <field name="inherit_id" ref="sale_coupon.sale_coupon_program_view_tree" />
+        <field name="arch" type="xml">
+            <field name="active" position="after">
+                <field name="is_cumulative" />
+                <field name="first_order_only" />
+            </field>
+        </field>
+    </record>
+</odoo>
