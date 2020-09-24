@@ -10,6 +10,12 @@ from odoo.addons.sale_automatic_workflow.tests.common import TestMultiCompanyCom
 class TestMultiCompany(TestMultiCompanyCommon):
     """Test stock related workflow with multi-company."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Setup data for all test cases."""
+        super().setUpClass()
+        cls.auto_wkf.validate_picking = True
+
     def test_sale_order_multicompany(self):
         self.env.user.company_id = self.env.ref("base.main_company")
         order_fr = self.create_auto_wkf_order(

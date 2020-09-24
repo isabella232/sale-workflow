@@ -47,7 +47,6 @@ class TestAutomaticPayment(common.TransactionCase):
             {
                 "name": "Full Automatic",
                 "validate_order": True,
-                "validate_picking": True,
                 "create_invoice": True,
                 "validate_invoice": True,
                 "invoice_date_is_order_date": True,
