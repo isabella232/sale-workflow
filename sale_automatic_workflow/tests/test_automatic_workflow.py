@@ -25,7 +25,19 @@ class TestAutomaticWorkflow(TestCommon, TestAutomaticWorkflowMixin):
         invoice = sale.invoice_ids
         self.assertEqual(invoice.state, "posted")
 
-    def test_02_date_invoice_from_sale_order(self):
+    def test_02_onchange(self):
+        team_1 = self.env.ref("sales_team.crm_team_1")
+        team_2 = self.env.ref("sales_team.team_sales_department")
+        workflow = self.create_full_automatic(override={"team_id": team_1.id})
+        sale = self.create_sale_order(workflow)
+        sale._onchange_workflow_process_id()
+        self.assertEqual(sale.team_id, team_1)
+        workflow2 = self.create_full_automatic(override={"team_id": team_2.id})
+        sale.workflow_process_id = workflow2.id
+        sale._onchange_workflow_process_id()
+        self.assertEqual(sale.team_id, team_2)
+
+    def test_03_date_invoice_from_sale_order(self):
         workflow = self.create_full_automatic()
         # date_order on sale.order is date + time
         # invoice_date on account.move is date only
@@ -40,7 +52,7 @@ class TestAutomaticWorkflow(TestCommon, TestAutomaticWorkflowMixin):
         self.assertEqual(invoice.invoice_date, last_week_time.date())
         self.assertEqual(invoice.workflow_process_id, sale.workflow_process_id)
 
-    def test_03_create_invoice_from_sale_order(self):
+    def test_04_create_invoice_from_sale_order(self):
         workflow = self.create_full_automatic()
         sale = self.create_sale_order(workflow)
         sale._onchange_workflow_process_id()
@@ -54,7 +66,7 @@ class TestAutomaticWorkflow(TestCommon, TestAutomaticWorkflowMixin):
             mocked.assert_called()
         self.assertEqual(line.qty_delivered, 1.0)
 
-    def test_04_invoice_from_picking_with_service_product(self):
+    def test_05_invoice_from_picking_with_service_product(self):
         workflow = self.create_full_automatic()
         product_service = self.env["product.product"].create(
             {
@@ -92,7 +104,7 @@ class TestAutomaticWorkflow(TestCommon, TestAutomaticWorkflowMixin):
         invoice = sale.invoice_ids
         self.assertEqual(invoice.workflow_process_id, sale.workflow_process_id)
 
-    def test_05_journal_on_invoice(self):
+    def test_06_journal_on_invoice(self):
         sale_journal = self.env["account.journal"].search(
             [("type", "=", "sale")], limit=1
         )

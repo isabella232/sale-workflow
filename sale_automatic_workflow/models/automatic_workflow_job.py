@@ -85,12 +85,17 @@ class AutomaticWorkflowJob(models.Model):
                 sale.action_done()
 
     @api.model
+    def _handle_pickings(self, sale_workflow):
+        pass
+
+    @api.model
     def run_with_workflow(self, sale_workflow):
         workflow_domain = [("workflow_process_id", "=", sale_workflow.id)]
         if sale_workflow.validate_order:
             self._validate_sale_orders(
                 safe_eval(sale_workflow.order_filter_id.domain) + workflow_domain
             )
+        self._handle_pickings(sale_workflow)
         if sale_workflow.create_invoice:
             self._create_invoices(
                 safe_eval(sale_workflow.create_invoice_filter_id.domain)

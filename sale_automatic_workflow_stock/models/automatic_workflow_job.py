@@ -28,9 +28,9 @@ class AutomaticWorkflowJob(models.Model):
                 picking.validate_picking()
 
     @api.model
-    def run_with_workflow(self, sale_workflow):
+    def _handle_pickings(self, sale_workflow):
         """Override to add stock picking validation."""
-        super().run_with_workflow(sale_workflow)
+        super()._handle_pickings(sale_workflow)
         workflow_domain = [("workflow_process_id", "=", sale_workflow.id)]
         if sale_workflow.validate_picking:
             self._validate_pickings(
