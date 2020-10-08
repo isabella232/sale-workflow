@@ -62,12 +62,7 @@ class SaleOrderLine(models.Model):
                 )
             )
             if first_packaging:
-                self.update(
-                    {
-                        "product_packaging": first_packaging.id,
-                        "product_uom_qty": first_packaging.qty,
-                    }
-                )
+                self.update({"product_packaging": first_packaging.id})
         return res
 
     @api.onchange("product_uom_qty")
@@ -89,8 +84,8 @@ class SaleOrderLine(models.Model):
                     "title": _("Product quantity cannot be packed"),
                     "message": _(
                         "For the product {prod}\n"
-                        "The {qty} is not the multiple of any pack.\n"
-                        "Please add a package"
+                        "The quantity {qty} is not the multiple of any packaging.\n"
+                        "Please add a packaging."
                     ).format(prod=self.product_id.name, qty=self.product_uom_qty),
                 }
                 return {"warning": warning_msg}
