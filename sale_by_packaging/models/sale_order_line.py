@@ -114,11 +114,10 @@ class SaleOrderLine(models.Model):
             # setting the packaging directly, skip auto assign
             return super().write(vals)
         for line in self:
-            if line.product_packaging:
-                # don't touch it if set already
-                continue
             line_vals = vals.copy()
-            line_vals.update(line._write_auto_assign_packaging(line_vals))
+            # auto assign the packaging only if there is none
+            if not line.product_packaging:
+                line_vals.update(line._write_auto_assign_packaging(line_vals))
             super(SaleOrderLine, line).write(line_vals)
         return True
 
