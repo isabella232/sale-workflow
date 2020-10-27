@@ -176,4 +176,4 @@ class SaleOrder(models.Model):
         # Lets check promotions on virtual sale order.
         if not isinstance(self.id, models.NewId):
             domain.append(("id", "!=", self.id))
-        return not bool(self.search_count(domain))
+        return not self.search_count(domain)
