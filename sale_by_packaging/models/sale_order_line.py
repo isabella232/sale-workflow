@@ -44,7 +44,7 @@ class SaleOrderLine(models.Model):
         for line in self:
             if not line.product_id.sell_only_by_packaging:
                 continue
-            if not line.product_packaging or not line.product_packaging_qty:
+            if not line.product_packaging or line.product_packaging_qty <= 0:
                 raise ValidationError(
                     _(
                         "Product %s can only be sold with a packaging and a "
@@ -90,6 +90,9 @@ class SaleOrderLine(models.Model):
         res = super()._onchange_product_uom_qty()
         if not res:
             res = self._check_qty_is_pack_multiple()
+        if "warning" in res.keys():
+            self.product_packaging_qty = False
+            self.product_packaging = False
         return res
 
     def _check_qty_is_pack_multiple(self):
