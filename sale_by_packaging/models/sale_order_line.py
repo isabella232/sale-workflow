@@ -38,14 +38,16 @@ class SaleOrderLine(models.Model):
             }
         return super()._onchange_product_packaging()
 
-    @api.constrains("product_id", "product_packaging")
+    @api.constrains("product_id", "product_packaging", "product_packaging_qty")
     def _check_product_packaging_sell_only_by_packaging(self):
         for line in self:
-            if line.product_id.sell_only_by_packaging and not line.product_packaging:
+            if not line.product_id.sell_only_by_packaging:
+                continue
+            if not line.product_packaging or line.product_packaging_qty <= 0:
                 raise ValidationError(
                     _(
-                        "Product %s can only be sold with a packaging."
-                        % line.product_id.name
+                        "Product %s can only be sold with a packaging and a "
+                        "packaging qantity." % line.product_id.name
                     )
                 )
 
@@ -58,6 +60,9 @@ class SaleOrderLine(models.Model):
         res = super()._onchange_product_uom_qty()
         if not res:
             res = self._check_qty_is_pack_multiple()
+        if "warning" in res.keys():
+            self.product_packaging_qty = False
+            self.product_packaging = False
         return res
 
     def _check_qty_is_pack_multiple(self):
@@ -111,7 +116,7 @@ class SaleOrderLine(models.Model):
             if "product_id" in vals
             else self.product_id
         )
-        if product and product.sell_only_by_packaging:
+        if product:
             quantity = (
                 vals["product_uom_qty"]
                 if "product_uom_qty" in vals
