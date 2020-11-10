@@ -27,7 +27,7 @@ class SaleCouponProgram(models.Model):
 
     def _get_multi_use_coupons(self):
         self.ensure_one()
-        return self.coupon_ids.filtered(lambda r: r.multi_use)
+        return self.coupon_ids.filtered("multi_use")
 
     @api.constrains("discount_fixed_amount")
     def _check_discount_fixed_amount(self):
