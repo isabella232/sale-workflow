@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_coupon_program_view_form_common" model="ir.ui.view">
+        <field name="name">sale.coupon.program.common.form.product</field>
+        <field name="model">sale.coupon.program</field>
+        <field
+            name="inherit_id"
+            ref="sale_coupon.sale_coupon_program_view_form_common"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='validity']" position="after">
+                <group string="Product Data" name="product_data">
+                    <field name="related_product_default_code" required="True" />
+                    <field name="related_product_categ_id" required="True" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_coupon_program_view_promo_program_form" model="ir.ui.view">
+        <field name="name">sale.coupon.promotion.program.form.product</field>
+        <field name="model">sale.coupon.program</field>
+        <field
+            name="inherit_id"
+            ref="sale_coupon.sale_coupon_program_view_promo_program_form"
+        />
+        <field name="arch" type="xml">
+            <field name="related_product_categ_id" position="attributes">
+                <attribute
+                    name="domain"
+                >[('is_promotion_category', '=', True)]</attribute>
+                <attribute
+                    name="context"
+                >{'default_is_promotion_category': True}</attribute>
+            </field>
+        </field>
+    </record>
+    <record id="sale_coupon_program_view_form" model="ir.ui.view">
+        <field name="name">sale.coupon.program.form.product</field>
+        <field name="model">sale.coupon.program</field>
+        <field name="inherit_id" ref="sale_coupon.sale_coupon_program_view_form" />
+        <field name="arch" type="xml">
+            <field name="related_product_categ_id" position="attributes">
+                <attribute name="domain">[('is_coupon_category', '=', True)]</attribute>
+                <attribute
+                    name="context"
+                >{'default_is_coupon_category': True}</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>
