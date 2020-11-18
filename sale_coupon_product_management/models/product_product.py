@@ -25,7 +25,7 @@ class ProductProduct(models.Model):
     @api.constrains("categ_id", "sale_ok")
     def _check_product_options(self):
         for rec in self:
-            categ = self.categ_id
+            categ = rec.categ_id
             if categ._predicate_product_categ_with_opts():
                 program = self.env["sale.coupon.program"].search(
                     [("discount_line_product_id", "=", rec.id)], limit=1

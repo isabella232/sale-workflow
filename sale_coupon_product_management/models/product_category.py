@@ -32,7 +32,7 @@ class ProductCategory(models.Model):
 
     @api.constrains("default_promotion_next_order_category")
     def _check_default_promotion_next_order_category(self):
-        if self.default_promotion_next_order_category:
+        if self.filtered("default_promotion_next_order_category"):
             count = self.search_count(
                 [("default_promotion_next_order_category", "=", True)]
             )
