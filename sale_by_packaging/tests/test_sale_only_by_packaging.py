@@ -1,10 +1,11 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl)
+import logging
+
 from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests import Form, SavepointCase
 from odoo.tools import mute_logger
-import logging
 
 
 class TestSaleProductByPackagingOnly(SavepointCase):
