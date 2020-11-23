@@ -73,7 +73,7 @@ msgstr ""
 #. module: sale_coupon_multi_use
 #: model:ir.model.fields,field_description:sale_coupon_multi_use.field_sale_coupon_consumption_line__id
 msgid "ID"
-msgstr ""
+msgstr "Identifiant"
 
 #. module: sale_coupon_multi_use
 #: model:ir.model.fields,field_description:sale_coupon_multi_use.field_sale_coupon_consumption_line____last_update

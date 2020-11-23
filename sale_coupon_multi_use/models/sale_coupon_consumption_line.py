@@ -18,19 +18,6 @@ class SaleCouponConsumptionLine(models.Model):
     )
     amount = fields.Float()
 
-    def _normalize_discount(self):
-        """Adjust SOL discount to match consumed discount."""
-        self.ensure_one()
-        # Discount initially won't match, when standard functionality
-        # applies full discount from coupon. But because we split
-        # coupon amount, we want to apply maximum possible discount.
-        sol = self.sale_order_line_id
-        sol_discount = abs(sol.price_unit)
-        amount_to_adjust = sol_discount - self.amount
-        if amount_to_adjust > 0:
-            # Reducing negative amount here.
-            sol.price_unit += amount_to_adjust
-
     def unlink(self):
         """Override to prevent direct unlink."""
         if not self._context.get("force_unlink_coupon_consumption_lines"):
