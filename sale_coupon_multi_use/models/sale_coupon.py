@@ -74,6 +74,12 @@ class SaleCoupon(models.Model):
             self._create_consumption_line(related_sol)
         return self.discount_fixed_amount_delta > 0
 
+    def _handle_multi_use_reset(self, coupon_sale_order):
+        consumption_lines = self.mapped("consumption_line_ids")
+        consumption_lines._unlink_consumption_lines(
+            coupon_sale_order.mapped("order_line")
+        )
+
     @api.model_create_multi
     def create(self, vals_list):
         """Extend to pick up coupon_multi_use value from program."""
@@ -108,4 +114,8 @@ class SaleCoupon(models.Model):
                     del copied_vals["state"]
                 if copied_vals:  # could be empty dict, so no point writing
                     super(SaleCoupon, multi_use_coupon).write(copied_vals)
+            # If coupon is set back to valid, we need to remove
+            # consumption lines that were used on that specific SO.
+            if vals.get("state") == "new":
+                self._handle_multi_use_reset(coupon_sale_order)
         return super(SaleCoupon, other_coupons).write(vals)

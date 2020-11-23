@@ -18,6 +18,14 @@ class SaleCouponConsumptionLine(models.Model):
     )
     amount = fields.Float()
 
+    def _get_consumption_lines_to_unlink(self, order_lines):
+        return self.filtered(lambda r: r.sale_order_line_id in order_lines)
+
+    def _unlink_consumption_lines(self, order_lines):
+        to_unlink = self._get_consumption_lines_to_unlink(order_lines)
+        if to_unlink:
+            to_unlink.with_context(force_unlink_coupon_consumption_lines=True).unlink()
+
     def unlink(self):
         """Override to prevent direct unlink."""
         if not self._context.get("force_unlink_coupon_consumption_lines"):

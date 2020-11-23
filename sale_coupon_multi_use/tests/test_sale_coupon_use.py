@@ -189,6 +189,15 @@ class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
             self.coupon_multi_use_1.discount_fixed_amount_delta, remaining_discount
         )
 
+    def test_05_coupon_multi_use(self):
+        """Apply multi use coupon on SO and cancel SO."""
+        self.coupon_apply_wiz.with_context(active_id=self.sale_1.id).process_coupon()
+        # Sanity check.
+        self.assertEqual(self.coupon_multi_use_1.state, "used")
+        self.sale_1.action_cancel()
+        self.assertFalse(self.coupon_multi_use_1.consumption_line_ids)
+        self.assertEqual(self.coupon_multi_use_1.state, "new")
+
     def _raise_multi_use_constraints(self, program):
         """Expect to raise exceptions when multi use coupons are used.
 
