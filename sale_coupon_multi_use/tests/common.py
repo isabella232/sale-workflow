@@ -1,11 +1,11 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+from odoo.addons.sale_coupon_multi_currency.tests.common import (
+    TestSaleCouponMultiCurrencyCommon,
+)
 
 
-from odoo.tests.common import SavepointCase
-
-
-class TestSaleCouponMultiUseCommon(SavepointCase):
+class TestSaleCouponMultiUseCommon(TestSaleCouponMultiCurrencyCommon):
     """Common class for multi use coupon tests."""
 
     @classmethod
@@ -17,9 +17,6 @@ class TestSaleCouponMultiUseCommon(SavepointCase):
         cls.SaleCouponProgram = cls.env["sale.coupon.program"]
         cls.SaleCouponGenerate = cls.env["sale.coupon.generate"]
         cls.SaleCouponApplyCode = cls.env["sale.coupon.apply.code"]
-        # Records.
-        # Coupon Programs.
-        cls.program_coupon_percentage = cls.env.ref("sale_coupon.10_percent_coupon")
         # Sales.
         # amount_total = 9705
         cls.sale_1 = cls.env.ref("sale.sale_order_1")

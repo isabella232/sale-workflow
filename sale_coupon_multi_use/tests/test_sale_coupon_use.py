@@ -1,10 +1,13 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 from odoo.exceptions import UserError, ValidationError
+from odoo.fields import Date
 
 from .common import TestSaleCouponMultiUseCommon
 
 DISCOUNT_AMOUNT = 5000
+
+_today = Date.today()
 
 
 class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
@@ -144,6 +147,54 @@ class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
         self.assertEqual(self.coupon_multi_use_1.state, "new")
 
     def test_04_coupon_multi_use(self):
+        """Apply multi use coupon on SO with different currency.
+
+        Case 1: consume part of coupon amount on SO2.
+        Case 2: consume remaining amount on SO1.
+        """
+        # Remove to be able to change currency on program.
+        self.program_multi_use.coupon_ids.unlink()
+        # Setting currency that is different than the one on SO (so must
+        # have USD as it is coming from pricelist).
+        self.program_multi_use.currency_custom_id = self.eur.id
+        # Generate new coupon.
+        self.coupon_generate_wiz.generate_coupon()
+        coupon_multi_use = self.program_multi_use.coupon_ids[0]
+        # Set new coupon code.
+        self.coupon_apply_wiz.coupon_code = coupon_multi_use.code
+        # Case 1.
+        amount_total_orig_1 = self.sale_2.amount_total
+        amount_total_expected = 0  # must make SO free.
+        self.coupon_apply_wiz.with_context(active_id=self.sale_2.id).process_coupon()
+        self.assertEqual(self.sale_2.amount_total, amount_total_expected)
+        consumption_line_so_2 = coupon_multi_use.consumption_line_ids
+        self.assertEqual(len(consumption_line_so_2), 1)
+        amount_consumption_line_1 = self.usd._convert(
+            amount_total_orig_1, self.eur, self.company_main, _today
+        )
+        self.assertEqual(consumption_line_so_2[0].amount, amount_consumption_line_1)
+        remaining_discount = DISCOUNT_AMOUNT - amount_consumption_line_1  # EUR
+        # Delta showing left amount that can be consumed.
+        self.assertEqual(
+            coupon_multi_use.discount_fixed_amount_delta, remaining_discount
+        )
+        self.assertEqual(coupon_multi_use.state, "new")
+        # Case 2.
+        amount_total_expected = self.sale_1.amount_total - self.eur._convert(
+            remaining_discount, self.usd, self.company_main, _today,
+        )
+        self.coupon_apply_wiz.with_context(active_id=self.sale_1.id).process_coupon()
+        self.assertEqual(self.sale_1.amount_total, amount_total_expected)  # USD
+        consume_lines = coupon_multi_use.consumption_line_ids
+        self.assertEqual(len(consume_lines), 2)
+        # First consumed amount is total of first whole SO total.
+        self.assertEqual(consume_lines[0].amount, amount_consumption_line_1)
+        # Second consumed amount is all remaining coupon value.
+        self.assertEqual(consume_lines[1].amount, remaining_discount)
+        self.assertEqual(coupon_multi_use.discount_fixed_amount_delta, 0)
+        self.assertEqual(coupon_multi_use.state, "used")
+
+    def test_05_coupon_multi_use(self):
         """Apply multiple coupons and confirm SO.
 
         Case 1: apply first coupon (single use).
@@ -189,7 +240,7 @@ class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
             self.coupon_multi_use_1.discount_fixed_amount_delta, remaining_discount
         )
 
-    def test_05_coupon_multi_use(self):
+    def test_06_coupon_multi_use(self):
         """Apply multi use coupon on SO and cancel SO."""
         self.coupon_apply_wiz.with_context(active_id=self.sale_1.id).process_coupon()
         # Sanity check.
@@ -239,12 +290,12 @@ class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
                 "coupon_multi_use=False and no multi_use coupons generated."
             )
 
-    def test_05_unlink_consumption_line(self):
+    def test_07_unlink_consumption_line(self):
         """Check if consumption line not allowed to unlink."""
         with self.assertRaises(UserError):
             self.coupon_multi_use_1.consumption_line_ids.unlink()
 
-    def test_06_coupon_program_constraints(self):
+    def test_08_coupon_program_constraints(self):
         """Check coupon constraints when multi use coupon is generated.
 
         Case 1: multi_use=True
@@ -253,40 +304,48 @@ class TestSaleCouponMultiUse(TestSaleCouponMultiUseCommon):
         # Case 1.
         with self.assertRaises(ValidationError):
             self.program_multi_use.discount_fixed_amount = 3000
+        with self.assertRaises(ValidationError):
+            self.program_multi_use.currency_custom_id = self.currency_other.id
         self._raise_multi_use_constraints(self.program_multi_use)
         # Case 2.
         with self.assertRaises(ValidationError):
             self.program_multi_use.discount_fixed_amount = 3000
+        with self.assertRaises(ValidationError):
+            self.program_multi_use.currency_custom_id = self.currency_other.id
         self._raise_multi_use_constraints(self.program_multi_use)
 
-    def test_07_coupon_program_constraints(self):
+    def test_09_coupon_program_constraints(self):
         """Check constraints when multi use coupon is not generated.
 
         Case 1: multi_use=True
         Case 2: multi_use=False
         """
 
-        def pass_discount_fixed_amount(program):
+        def pass_fields(program):
             fail_msg = (
                 "There are no multi use coupons generated, so must be able"
-                " to change amount."
+                " to change %s."
             )
             try:
                 program.discount_fixed_amount = 3000
             except ValidationError:
-                self.fail(fail_msg)
+                self.fail(fail_msg % "discount_fixed_amount")
+            try:
+                program.currency_custom_id = self.currency_other.id
+            except ValidationError:
+                self.fail(fail_msg % "currency_custom_id")
 
         # Copy program, so it would not have coupons.
         program = self.program_multi_use.copy()
         # Case 1.
-        pass_discount_fixed_amount(program)
+        pass_fields(program)
         self._raise_multi_use_constraints(program)
         # Case 2.
         program.coupon_multi_use = False
-        pass_discount_fixed_amount(program)
+        pass_fields(program)
         self._not_raise_multi_use_constraints(program)
 
-    def test_08_coupon_program_constraints(self):
+    def test_10_coupon_program_constraints(self):
         """Try to use coupon_multi_use, when other options are incorrect."""
         with self.assertRaises(ValidationError):
             self.program_coupon_percentage.coupon_multi_use = True

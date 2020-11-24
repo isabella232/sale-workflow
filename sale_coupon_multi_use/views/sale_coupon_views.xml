@@ -24,6 +24,7 @@
                     attrs="{'invisible': [('multi_use', '=', False)]}"
                 >
                     <tree>
+                        <field name="currency_program_id" invisible="1" />
                         <field name="sale_order_line_id" />
                         <field name="amount" />
                     </tree>

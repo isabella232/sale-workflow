@@ -29,14 +29,14 @@ class SaleCouponProgram(models.Model):
         self.ensure_one()
         return self.coupon_ids.filtered("multi_use")
 
-    @api.constrains("discount_fixed_amount")
+    @api.constrains("discount_fixed_amount", "currency_custom_id")
     def _check_discount_fixed_amount(self):
         for rec in self:
             if rec._get_multi_use_coupons():
                 raise ValidationError(
                     _(
-                        "Fixed Amount can't be changed when there are Multi Use "
-                        "coupons already."
+                        "Fixed Amount or Custom Currency can't be changed "
+                        "when there are Multi Use coupons already."
                     )
                 )
 
