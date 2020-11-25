@@ -1,8 +1,8 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl)
-from odoo import _, api, fields, models
+from odoo import _, api, models
 from odoo.exceptions import ValidationError
-from odoo.tools import float_is_zero
+from odoo.tools import float_compare
 
 
 class SaleOrderLine(models.Model):
@@ -39,43 +39,39 @@ class SaleOrderLine(models.Model):
             }
         return super()._onchange_product_packaging()
 
-    @api.constrains("product_id", "product_packaging")
+    @api.constrains("product_id", "product_packaging", "product_packaging_qty")
     def _check_product_packaging_sell_only_by_packaging(self):
         for line in self:
-            if line.product_id.sell_only_by_packaging and not line.product_packaging:
+            if not line.product_id.sell_only_by_packaging:
+                continue
+            if (
+                not line.product_packaging
+                or float_compare(
+                    line.product_packaging_qty,
+                    0,
+                    precision_rounding=line.product_id.uom_id.rounding,
+                )
+                <= 0
+            ):
                 raise ValidationError(
                     _(
-                        "Product %s can only be sold with a packaging."
-                        % line.product_id.name
+                        "Product %s can only be sold with a packaging and a "
+                        "packaging qantity." % line.product_id.name
                     )
                 )
 
     @api.onchange("product_id")
     def product_id_change(self):
-        res = super().product_id_change()
-        if self.product_id.sell_only_by_packaging:
-            first_packaging = fields.first(
-                self.product_id.packaging_ids.filtered(
-                    lambda p: not float_is_zero(
-                        p.qty, precision_rounding=p.product_uom_id.rounding
-                    )
-                )
-            )
-            if first_packaging:
-                self.update(
-                    {
-                        "product_packaging": first_packaging.id,
-                        "product_uom_qty": first_packaging.qty,
-                    }
-                )
-        return res
+        return super().product_id_change()
 
     @api.onchange("product_uom_qty")
     def _onchange_product_uom_qty(self):
         res = super()._onchange_product_uom_qty()
-        if not res:
-            res = self._check_qty_is_pack_multiple()
-        return res
+        is_pack_multiple_warning = self._check_qty_is_pack_multiple()
+        if is_pack_multiple_warning:
+            self.product_packaging_qty = False
+            self.product_packaging = False
+        return res if res else is_pack_multiple_warning
 
     def _check_qty_is_pack_multiple(self):
         """ Check only for product with sell_only_by_packaging
@@ -89,8 +85,8 @@ class SaleOrderLine(models.Model):
                     "title": _("Product quantity cannot be packed"),
                     "message": _(
                         "For the product {prod}\n"
-                        "The {qty} is not the multiple of any pack.\n"
-                        "Please add a package"
+                        "The quantity {qty} is not the multiple of any packaging.\n"
+                        "Please add a packaging."
                     ).format(prod=self.product_id.name, qty=self.product_uom_qty),
                 }
                 return {"warning": warning_msg}
@@ -128,7 +124,7 @@ class SaleOrderLine(models.Model):
             if "product_id" in vals
             else self.product_id
         )
-        if product and product.sell_only_by_packaging:
+        if product:
             quantity = (
                 vals["product_uom_qty"]
                 if "product_uom_qty" in vals
