@@ -19,6 +19,7 @@ class SaleCoupon(models.Model):
     # Takes value from related program (coupon_multi_use field), when
     # it is generated.
     multi_use = fields.Boolean(readonly=True)
+    currency_program_id = fields.Many2one(related="program_id.currency_id")
     consumption_line_ids = fields.One2many(
         "sale.coupon.consumption_line", "coupon_id", "Consumption Lines", readonly=True,
     )

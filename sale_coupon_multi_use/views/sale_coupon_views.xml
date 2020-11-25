@@ -16,6 +16,7 @@
         <field name="inherit_id" ref="sale_coupon.sale_coupon_view_form" />
         <field name="arch" type="xml">
             <field name="expiration_date" position="after">
+                <field name="currency_program_id" invisible="1" />
                 <field name="multi_use" />
             </field>
             <xpath expr="/form/sheet/group" position="after">

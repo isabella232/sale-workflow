@@ -9,6 +9,8 @@ class SaleCouponProgram(models.Model):
 
     _inherit = "sale.coupon.program"
 
+    # Changing existing related field to computed to allow changing
+    # currency.
     currency_id = fields.Many2one(
         "res.currency",
         related=None,
