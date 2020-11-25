@@ -1,6 +1,5 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl)
-from dateutil.relativedelta import relativedelta
 from psycopg2 import sql
 
 from odoo import _, api, fields, models
@@ -11,7 +10,7 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
 
     cutoff_time_hms = fields.Char(
-        compute="_compute_cutoff_time_HMS", store=True, default="00:00"
+        compute="_compute_cutoff_time_hms", store=True, default="00:00"
     )
     cutoff_time_diff = fields.Integer(
         compute="_compute_cutoff_time_diff",
@@ -35,7 +34,7 @@ class StockPicking(models.Model):
             today_cutoff = fields.Datetime.now().replace(
                 hour=hour, minute=minute, second=0
             )
-            yesterday_cutoff = today_cutoff + relativedelta(days=-1)
+            yesterday_cutoff = fields.Datetime.subtract(today_cutoff, days=1)
             if record.scheduled_date < yesterday_cutoff:
                 record.cutoff_time_diff = -1
             elif record.scheduled_date > today_cutoff:
@@ -47,10 +46,10 @@ class StockPicking(models.Model):
         if operator not in ("=", "!="):
             raise UserError(_("Unsupported search operator %s") % (operator,))
         today = fields.Datetime.now()
-        yesterday = today - relativedelta(days=1)
+        yesterday = fields.Datetime.subtract(today, days=1)
         params = {
-            "yesterday": yesterday.strftime("%Y-%m-%d"),
-            "today": today.strftime("%Y-%m-%d"),
+            "yesterday": fields.Date.to_string(yesterday),
+            "today": fields.Date.to_string(today),
         }
         if value == -1:
             where = """
@@ -81,7 +80,7 @@ class StockPicking(models.Model):
         return [("id", new_operator, picking_ids)]
 
     @api.depends("location_id")
-    def _compute_cutoff_time_HMS(self):
+    def _compute_cutoff_time_hms(self):
         """Keep the time of the cutoff for the related warehouse
 
         In the format HH:MM which Postgres translate easily in Time format
