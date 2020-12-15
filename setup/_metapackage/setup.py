@@ -23,6 +23,7 @@ setuptools.setup(
         'odoo13-addon-sale_order_line_date',
         'odoo13-addon-sale_order_line_packaging_qty',
         'odoo13-addon-sale_order_lot_selection',
+        'odoo13-addon-sale_order_product_availability_inline',
         'odoo13-addon-sale_order_product_recommendation',
         'odoo13-addon-sale_order_product_recommendation_secondary_unit',
         'odoo13-addon-sale_order_secondary_unit',
@@ -39,6 +40,7 @@ setuptools.setup(
         'odoo13-addon-sale_tier_validation',
         'odoo13-addon-sale_validity',
         'odoo13-addon-sale_wishlist',
+        'odoo13-addon-sales_team_security',
     ],
     classifiers=[
         'Programming Language :: Python',
