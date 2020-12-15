@@ -1,4 +1,8 @@
+partner-contact
 product-attribute
+server-tools
 stock-logistics-warehouse
 account-invoicing
 partner-contact
+stock-logistics-workflow
+server-tools
