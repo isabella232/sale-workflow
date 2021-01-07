@@ -67,7 +67,7 @@ class TestPackagingTypeCanBeSold(SavepointCase):
         # Packaging can be sold even if the packaging type does not allows it
         self.packaging_cannot_be_sold.can_be_sold = True
         self.order_line.write({"product_packaging": self.packaging_cannot_be_sold.id})
-        # Changing the packaging type on product.packaging does not change the can_be_sold
+        # Changing the packaging type on product.packaging updates can_be_sold
         self.packaging_can_be_sold.unlink()
         self.packaging_cannot_be_sold.packaging_type_id = (
             self.packaging_type_can_be_sold
@@ -75,4 +75,7 @@ class TestPackagingTypeCanBeSold(SavepointCase):
         self.packaging_cannot_be_sold.packaging_type_id = (
             self.packaging_type_cannot_be_sold
         )
-        self.assertEqual(self.packaging_cannot_be_sold.can_be_sold, True)
+        self.assertEqual(self.packaging_cannot_be_sold.can_be_sold, False)
+        # Changing the can_be_sold on the packaging_type does not update the packaging
+        self.packaging_type_cannot_be_sold.can_be_sold = True
+        self.assertEqual(self.packaging_cannot_be_sold.can_be_sold, False)

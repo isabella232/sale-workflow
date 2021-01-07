@@ -6,7 +6,9 @@ from odoo import api, fields, models
 class ProductPackaging(models.Model):
     _inherit = "product.packaging"
 
-    can_be_sold = fields.Boolean(string="Can be sold")
+    can_be_sold = fields.Boolean(
+        string="Can be sold", compute="_compute_can_be_sold", readonly=False, store=True
+    )
 
     force_sale_qty = fields.Boolean(
         string="Force sale quantity",
@@ -18,9 +20,7 @@ class ProductPackaging(models.Model):
         "quantity to the superior unit (5 for this example).",
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        packagings = super().create(vals_list)
-        for pack in packagings:
-            pack.write({"can_be_sold": pack.packaging_type_id.can_be_sold})
-        return packagings
+    @api.depends("packaging_type_id")
+    def _compute_can_be_sold(self):
+        for record in self:
+            record.can_be_sold = record.packaging_type_id.can_be_sold
