@@ -3,3 +3,5 @@ stock-logistics-warehouse
 account-invoicing
 server-tools
 partner-contact
+
+stock-logistics-workflow https://github.com/camptocamp/stock-logistics-workflow 13-add-stock_partner_delivery_window
