@@ -66,9 +66,6 @@ class TestSaleProductByPackagingOnly(SavepointCase):
                 "product_uom_qty": self.packaging.qty * 2,
             }
         )
-        # Why should it be false if the quantity fits ?
-        # self.assertFalse(order_line_1.product_packaging)
-        # self.assertFalse(order_line_1.product_packaging_qty)
         self.assertEqual(order_line_1.product_packaging, self.packaging)
         self.assertEqual(order_line_1.product_packaging_qty, 2)
 
