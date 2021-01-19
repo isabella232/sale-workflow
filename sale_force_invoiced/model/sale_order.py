@@ -23,5 +23,8 @@ class SaleOrder(models.Model):
     def _get_invoiced(self):
         super(SaleOrder, self)._get_invoiced()
         for order in self:
-            if order.force_invoiced and order.invoice_status == 'to invoice':
+            if (
+                    order.force_invoiced and
+                    order.invoice_status in ('to invoice', 'no')
+            ):
                 order.invoice_status = 'invoiced'
