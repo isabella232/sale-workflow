@@ -92,6 +92,12 @@ class SaleOrderLine(models.Model):
             SaleOrderLine, self.with_context(_skip_auto_assign=True)
         )._inverse_product_packaging_qty()
 
+    def _inverse_qty_delivered(self):
+        # Force skipping of auto assign
+        super(
+            SaleOrderLine, self.with_context(_skip_auto_assign=True)
+        )._inverse_qty_delivered()
+
     def write(self, vals):
         """Auto assign packaging if needed"""
         if "product_packaging" in vals.keys() or self.env.context.get(

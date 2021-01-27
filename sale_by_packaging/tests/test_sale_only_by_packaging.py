@@ -66,8 +66,8 @@ class TestSaleProductByPackagingOnly(SavepointCase):
                 "product_uom_qty": self.packaging.qty * 2,
             }
         )
-        self.assertEqual(order_line_1.product_packaging, self.packaging)
-        self.assertEqual(order_line_1.product_packaging_qty, 2)
+        self.assertFalse(order_line_1.product_packaging)
+        self.assertFalse(order_line_1.product_packaging_qty)
 
         self.product.write({"sell_only_by_packaging": True})
         order_line_1 = self.env["sale.order.line"].create(
