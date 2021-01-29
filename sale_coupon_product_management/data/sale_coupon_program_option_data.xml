@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record
+        id="sale_coupon_program_option_coupon_discount_fixed_amount"
+        model="sale.coupon.program.option"
+    >
+        <field name="name">Force Fixed Amount Discount</field>
+        <field name="option_type">discount_fixed_amount</field>
+        <field name="program_type">coupon_program</field>
+    </record>
+    <record
+        id="sale_coupon_program_option_coupon_product_sale_ok"
+        model="sale.coupon.program.option"
+    >
+        <field name="name">Product can Be Sold</field>
+        <field name="option_type">product_sale_ok</field>
+        <field name="program_type">coupon_program</field>
+    </record>
+    <record
+        id="sale_coupon_program_option_coupon_product_not_sale_ok"
+        model="sale.coupon.program.option"
+    >
+        <field name="name">Product can not Be Sold</field>
+        <field name="option_type">product_not_sale_ok</field>
+        <field name="program_type">coupon_program</field>
+    </record>
+</odoo>
