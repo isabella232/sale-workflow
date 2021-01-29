@@ -71,7 +71,7 @@ class SaleOrder(models.Model):
         # method should respect the initial sequence of programs
         filtered_programs = []
         for program in programs:
-            if not program.is_cumulative:
+            if program.is_cumulative:
                 filtered_programs.append(program.id)
             else:
                 # when first non cumulative found cut the rest
@@ -92,7 +92,7 @@ class SaleOrder(models.Model):
         program_pricelist = programs.filtered(
             lambda r: r.reward_type == "use_pricelist"
         )[
-            :1
+            -1
         ]  # making sure we limit to 1.
         if (
             program_pricelist
