@@ -1,6 +1,7 @@
 # Copyright 2020 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 from odoo import models
+from odoo.tools import float_compare
 
 
 class SaleOrder(models.Model):
@@ -11,7 +12,7 @@ class SaleOrder(models.Model):
     def _get_most_expensive_line(self):
         # Mimic _get_cheapest_line method.
         lines = self.order_line.filtered(
-            lambda r: not r.is_reward_line and r.price_reduce > 0
+            lambda r: not r.is_reward_line and float_compare(r.price_reduce, 0) == 1
         )
         return max(lines, key=lambda r: r["price_reduce"])
 
