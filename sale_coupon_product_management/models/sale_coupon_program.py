@@ -34,6 +34,7 @@ class SaleCouponProgram(models.Model):
         readonly=False,
         store=True,
     )
+    discount_line_product_chosen = fields.Boolean()
 
     @api.onchange("related_product_categ_id")
     def _onchange_related_product_categ_id(self):
