@@ -10,7 +10,7 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='validity']" position="after">
                 <group string="Product Data" name="product_data">
-                    <field name="discount_line_product_chosen"/>
+                    <field name="discount_line_product_chosen" />
                     <field name="related_product_categ_id" required="True" />
                     <field
                         name="related_product_default_code"
@@ -38,8 +38,12 @@
         />
         <field name="arch" type="xml">
             <field name="related_product_categ_id" position="attributes">
-                <attribute name="domain">[('is_promotion_category', '=', True)]</attribute>
-                <attribute name="context">{'default_is_promotion_category': True}</attribute>
+                <attribute name="domain">
+                    [('is_promotion_category', '=', True)]
+                </attribute>
+                <attribute name="context">
+                    {'default_is_promotion_category': True}
+                </attribute>
             </field>
         </field>
     </record>
@@ -49,8 +53,12 @@
         <field name="inherit_id" ref="sale_coupon.sale_coupon_program_view_form" />
         <field name="arch" type="xml">
             <field name="related_product_categ_id" position="attributes">
-                <attribute name="domain">[('is_coupon_category', '=', True)]</attribute>
-                <attribute name="context">{'default_is_coupon_category': True}</attribute>
+                <attribute name="domain">
+                    [('is_coupon_category', '=', True)]
+                </attribute>
+                <attribute name="context">
+                    {'default_is_coupon_category': True}
+                </attribute>
             </field>
         </field>
     </record>
