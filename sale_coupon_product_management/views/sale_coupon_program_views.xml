@@ -14,7 +14,7 @@
                     <field name="related_product_categ_id" required="True" />
                     <field
                         name="related_product_default_code"
-                        attrs="{'invisible': [('discount_line_product_chosen', '=', True)], 'required': [('discount_line_product_chosen', '=', True)]}"
+                        attrs="{'invisible': [('discount_line_product_chosen', '=', True)], 'required': [('discount_line_product_chosen', '=', False)]}"
                     />
                 </group>
             </xpath>
