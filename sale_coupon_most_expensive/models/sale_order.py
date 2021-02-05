@@ -11,9 +11,14 @@ class SaleOrder(models.Model):
 
     def _get_most_expensive_line(self):
         # Mimic _get_cheapest_line method.
+        price_reduce_digits = self.env["decimal.precision"].precision_get(
+            self.order_line._fields["price_reduce"]._digits
+        )
         lines = self.order_line.filtered(
             lambda r: not r.is_reward_line
-            and float_compare(r.price_reduce, 0, precision_digits=2) > 0
+            and float_compare(
+                r.price_reduce, 0, precision_digits=price_reduce_digits
+            ) > 0
         )
         return max(lines, key=lambda r: r["price_reduce"])
 
