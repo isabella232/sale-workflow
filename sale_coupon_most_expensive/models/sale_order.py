@@ -16,9 +16,8 @@ class SaleOrder(models.Model):
         )
         lines = self.order_line.filtered(
             lambda r: not r.is_reward_line
-            and float_compare(
-                r.price_reduce, 0, precision_digits=price_reduce_digits
-            ) > 0
+            and float_compare(r.price_reduce, 0, precision_digits=price_reduce_digits)
+            > 0
         )
         return max(lines, key=lambda r: r["price_reduce"])
 
