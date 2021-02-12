@@ -43,10 +43,10 @@ class TestSaleCouponProductManageCommon(SavepointCase):
         # amount_total = 2947.5
         cls.sale_2 = cls.env.ref("sale.sale_order_2")
         cls.product_category_promotion = cls.ProductCategory.create(
-            {"name": "Dummy Promotion Category", "is_promotion_category": True}
+            {"name": "Dummy Promotion Category", "is_program_category": True}
         )
         cls.product_category_coupon = cls.ProductCategory.create(
-            {"name": "Dummy Coupon Category", "is_coupon_category": True}
+            {"name": "Dummy Coupon Category", "is_program_category": True}
         )
         cls.program_coupon_1 = cls.SaleCouponProgram.create(
             {
