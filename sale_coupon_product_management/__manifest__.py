@@ -1,4 +1,4 @@
-# Copyright 2020 Camptocamp
+# Copyright 2021 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 {
     "name": "Sale Coupon Product Management",
@@ -10,11 +10,9 @@
     "license": "AGPL-3",
     "depends": ["sale_coupon"],
     "data": [
-        "security/ir.model.access.csv",
-        "data/sale_coupon_program_option_data.xml",
         "views/product_category_views.xml",
+        "views/product_product_views.xml",
         "views/sale_coupon_program_views.xml",
-        "views/sale_coupon_program_option_views.xml",
     ],
     "installable": True,
 }
