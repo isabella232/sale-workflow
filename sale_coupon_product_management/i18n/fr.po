@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 13.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-17 12:08+0000\n"
-"PO-Revision-Date: 2020-11-17 12:08+0000\n"
+"POT-Creation-Date: 2021-02-12 13:55+0000\n"
+"PO-Revision-Date: 2021-02-12 13:55+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,104 +16,36 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/sale_coupon_program_option.py:0
-#, python-format
-msgid "'%s' value must be '%s' for %s"
-msgstr "La valeur de '%s' doit être '%s' pour '%s"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__active
-msgid "Active"
-msgstr "Active"
-
-#. module: sale_coupon_product_management
-#: model:ir.model,name:sale_coupon_product_management.model_sale_coupon_program_option
-msgid "Coupon/Promotion Option"
-msgstr "Option pour bon de réduction/promotion"
-
-#. module: sale_coupon_product_management
-#: model:ir.actions.act_window,name:sale_coupon_product_management.sale_coupon_program_option_action
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__program_option_ids
-#: model:ir.ui.menu,name:sale_coupon_product_management.sale_coupon_program_option_menu
-msgid "Coupon/Promotion Options"
-msgstr "Options pour bon de réduction/promotion"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__create_uid
-msgid "Created by"
-msgstr "Créé par"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__create_date
-msgid "Created on"
-msgstr "Créé le"
-
-#. module: sale_coupon_product_management
 #: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__default_promotion_next_order_category
 msgid "Default Promotion Next Order Category"
-msgstr "Catégorie par défaut pour promotion applicable sur une commande ultérieure"
+msgstr ""
+"Catégorie par défaut pour promotion applicable sur une commande ultérieure"
 
 #. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__display_name
-msgid "Display Name"
-msgstr "Nom"
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__discount_line_product_chosen
+msgid "Discount Line Product Chosen"
+msgstr "Produit de ligne de récompense choisi"
 
 #. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/sale_coupon_program_option.py:0
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__force_product_categ_id
+msgid "Force Product Categ"
+msgstr "Forcer la catégorie du produit"
+
+#. module: sale_coupon_product_management
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__force_product_default_code
+msgid "Force Product Default Code"
+msgstr "Forcer la référence interne du produit"
+
+#. module: sale_coupon_product_management
+#: code:addons/sale_coupon_product_management/models/product_product.py:0
 #, python-format
-msgid "Fixed Amount Discount"
-msgstr "Réduction de type montant fixe"
+msgid "Invalid 'Can be sold' value corresponding to program category options."
+msgstr "Invalide valeur 'Peut être vendu' correspondant aux options de la catégorie de programme"
 
 #. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__id
-msgid "ID"
-msgstr "ID"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__related_product_default_code
-msgid "Internal Reference"
-msgstr "Référence"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_coupon_category
-msgid "Is Coupon Category"
-msgstr "Est une catégorie de bons de réduction"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_promotion_category
-msgid "Is Promotion Category"
-msgstr "Est une catégorie de promotion"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option____last_update
-msgid "Last Modified on"
-msgstr "Dernière modification le"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__write_uid
-msgid "Last Updated by"
-msgstr "Dernière mise à jour par"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__write_date
-msgid "Last Updated on"
-msgstr "Dernière mise à jour le"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__name
-msgid "Name"
-msgstr "Nom"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__option_type
-msgid "Option Type"
-msgstr "Type d'option"
-
-#. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/sale_coupon_program_option.py:0
-#, python-format
-msgid "Options '%s' are not compatible"
-msgstr "Les options '%s' ne sont pas compatibles"
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_program_category
+msgid "Is Program Category"
+msgstr "Est une catégorie de programme"
 
 #. module: sale_coupon_product_management
 #: model:ir.model,name:sale_coupon_product_management.model_product_product
@@ -122,7 +54,6 @@ msgstr "Article"
 
 #. module: sale_coupon_product_management
 #: model:ir.model,name:sale_coupon_product_management.model_product_category
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__related_product_categ_id
 msgid "Product Category"
 msgstr "Catégorie d'article"
 
@@ -132,21 +63,31 @@ msgid "Product Data"
 msgstr "Information produit"
 
 #. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/sale_coupon_program_option.py:0
-#, python-format
-msgid "Product can be Sold"
+#: model:ir.model.fields,help:sale_coupon_product_management.field_sale_coupon_program__discount_line_product_readonly_id
+msgid ""
+"Product used in the sales order to apply the discount. Each coupon program "
+"has its own reward product for reporting purpose"
+msgstr ""
+"Le produit utilisé pour appliquer la remise sur le bon de commande. Tous les"
+" programmes de coupons possèdent un produit de récompense spécifique afin de"
+" permettre leur différenciation."
+
+#. module: sale_coupon_product_management
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__program_product_discount_fixed_amount
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_product__program_product_discount_fixed_amount
+msgid "Program Product Discount Fixed Amount"
+msgstr "Prix de vente du produit défini sur le programme"
+
+#. module: sale_coupon_product_management
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__program_product_sale_ok
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_product__program_product_sale_ok
+msgid "Program Product Sale Ok"
 msgstr "Le produit peut être vendu"
 
 #. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/sale_coupon_program_option.py:0
-#, python-format
-msgid "Product can not be Sold"
-msgstr "Le produit ne peut pas être vendu"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option__program_type
-msgid "Program Type"
-msgstr "Type de programme"
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program__discount_line_product_readonly_id
+msgid "Reward Line Product"
+msgstr "Produit de ligne de récompense"
 
 #. module: sale_coupon_product_management
 #: model:ir.model,name:sale_coupon_product_management.model_sale_coupon_program
@@ -154,17 +95,17 @@ msgid "Sales Coupon Program"
 msgstr "Programme de coupon de vente"
 
 #. module: sale_coupon_product_management
-#: model:ir.model.fields,help:sale_coupon_product_management.field_sale_coupon_program__related_product_categ_id
-msgid "Select category for the current product"
-msgstr "Choix de catégorie pour le produit"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.constraint,message:sale_coupon_product_management.constraint_sale_coupon_program_option_option_type_uniq
-msgid "The Option Type must be unique per Program Type !"
-msgstr "Le type d'option doit être unique par type de programme !"
-
-#. module: sale_coupon_product_management
-#: code:addons/sale_coupon_product_management/models/product_category.py:0
+#: code:addons/sale_coupon_product_management/models/sale_coupon_program.py:0
 #, python-format
-msgid "There can be only one Default Promotion Next Order Category"
-msgstr "Il ne peut y avoir qu'une seulement catégorie pour promotion applicable sur une commande ultérieur"
+msgid "This reward line product is already used into another program."
+msgstr "Ce produit de ligne de récompense est déjà utilisé dans un autre programme."
+
+#. module: sale_coupon_product_management
+#: code:addons/sale_coupon_product_management/models/sale_coupon_program.py:0
+#, python-format
+msgid ""
+"With 'program_product_discount_fixed_amount' category, the reward type must "
+"be 'discount' and the discount type must be 'Fixed Amount'."
+msgstr ""
+"Avec une catégorie 'Prix de vente du produit défini sur le programme', le type de remise doit "
+"être 'remise' and le type de remise doit être 'Prix fixe'."
