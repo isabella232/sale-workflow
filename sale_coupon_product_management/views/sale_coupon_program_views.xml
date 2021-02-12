@@ -11,10 +11,14 @@
             <xpath expr="//group[@name='validity']" position="after">
                 <group string="Product Data" name="product_data">
                     <field name="discount_line_product_chosen" />
-                    <field name="related_product_categ_id" required="True" />
                     <field
-                        name="related_product_default_code"
-                        attrs="{'invisible': [('discount_line_product_chosen', '=', True)], 'required': [('discount_line_product_chosen', '=', False)]}"
+                        name="force_product_categ_id"
+                        required="True"
+                        context="{'default_is_program_category': True}"
+                    />
+                    <field
+                        name="force_product_default_code"
+                        attrs="{'invisible': [('discount_line_product_chosen', '=', True)]}"
                     />
                 </group>
             </xpath>
@@ -23,42 +27,12 @@
                     {'invisible': [('discount_line_product_chosen', '=', False), ('discount_line_product_id', '=', False)], 'readonly': [('discount_line_product_chosen', '=', False)], 'required': [('discount_line_product_chosen', '=', True)]}
                 </attribute>
                 <attribute name="domain">
-                    [('categ_id', '=', related_product_categ_id)]
+                    [('categ_id', '=', force_product_categ_id)]
+                </attribute>
+                <attribute name="context">
+                    {'default_categ_id': force_product_categ_id}
                 </attribute>
                 <attribute name="readonly">False</attribute>
-            </field>
-        </field>
-    </record>
-    <record id="sale_coupon_program_view_promo_program_form" model="ir.ui.view">
-        <field name="name">sale.coupon.promotion.program.form.product</field>
-        <field name="model">sale.coupon.program</field>
-        <field
-            name="inherit_id"
-            ref="sale_coupon.sale_coupon_program_view_promo_program_form"
-        />
-        <field name="arch" type="xml">
-            <field name="related_product_categ_id" position="attributes">
-                <attribute name="domain">
-                    [('is_promotion_category', '=', True)]
-                </attribute>
-                <attribute name="context">
-                    {'default_is_promotion_category': True}
-                </attribute>
-            </field>
-        </field>
-    </record>
-    <record id="sale_coupon_program_view_form" model="ir.ui.view">
-        <field name="name">sale.coupon.program.form.product</field>
-        <field name="model">sale.coupon.program</field>
-        <field name="inherit_id" ref="sale_coupon.sale_coupon_program_view_form" />
-        <field name="arch" type="xml">
-            <field name="related_product_categ_id" position="attributes">
-                <attribute name="domain">
-                    [('is_coupon_category', '=', True)]
-                </attribute>
-                <attribute name="context">
-                    {'default_is_coupon_category': True}
-                </attribute>
             </field>
         </field>
     </record>
