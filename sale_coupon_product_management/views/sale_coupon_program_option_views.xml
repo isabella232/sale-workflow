@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sale_coupon_program_option_view_tree" model="ir.ui.view">
+        <field name="name">sale.coupon.program.option.tree</field>
+        <field name="model">sale.coupon.program.option</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="option_type" />
+                <field name="program_type" />
+            </tree>
+        </field>
+    </record>
+    <record id="sale_coupon_program_option_view_form" model="ir.ui.view">
+        <field name="name">sale.coupon.program.option.form</field>
+        <field name="model">sale.coupon.program.option</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group name="main">
+                        <group name="left">
+                            <field name="name" />
+                            <field name="option_type" />
+                        </group>
+                        <group name="right">
+                            <field name="program_type" />
+                            <field name="active" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sale_coupon_program_option_action" model="ir.actions.act_window">
+        <field name="name">Coupon/Promotion Options</field>
+        <field name="res_model">sale.coupon.program.option</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="sale_coupon_program_option_menu"
+        parent="sale.menu_sale_config"
+        action="sale_coupon_program_option_action"
+        sequence="11"
+    />
+</odoo>
