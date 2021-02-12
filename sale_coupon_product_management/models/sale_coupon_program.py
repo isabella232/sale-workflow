@@ -1,23 +1,8 @@
-# Copyright 2020 Camptocamp SA
+# Copyright 2021 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
-from odoo import api, fields, models
 
-from .sale_coupon_program_option import DISCOUNT_PRODUCT_FNAME, SELF
-
-# If related fields for product uses this prefix, init value will be
-# automatically passed on related product.
-PRODUCT_FNAME_PREFIX = "related_product_"
-# NOTE. Need to copy/paste dependencies, because in standard Odoo these
-# are buried inside write method (not reachable).
-PRODUCT_NAME_DEPS = [
-    "reward_type",
-    "reward_product_id",
-    "discount_type",
-    "discount_percentage",
-    "discount_apply_on",
-    "discount_specific_product_ids",
-    "discount_fixed_amount",
-]
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class SaleCouponProgram(models.Model):
@@ -25,103 +10,146 @@ class SaleCouponProgram(models.Model):
 
     _inherit = "sale.coupon.program"
 
-    related_product_default_code = fields.Char(
-        related="discount_line_product_id.default_code", readonly=False
-    )
-    related_product_categ_id = fields.Many2one(
-        # Storing so constraint would not complain.
-        related="discount_line_product_id.categ_id",
-        readonly=False,
-        store=True,
+    force_product_default_code = fields.Char()
+    force_product_categ_id = fields.Many2one(
+        comodel_name="product.category", domain=[("is_program_category", "=", True)]
     )
     discount_line_product_chosen = fields.Boolean()
 
-    @api.onchange("related_product_categ_id")
-    def _onchange_related_product_categ_id(self):
-        categ = self.related_product_categ_id
-        if categ._predicate_product_categ_with_opts():
-            # Updating only sale.coupon.program values here.
-            self.update(categ.program_option_ids.get_program_values()[SELF])
-
-    @api.onchange("promo_applicability")
+    @api.onchange("program_type", "promo_applicability")
     def _onchange_promo_applicability(self):
         if (
             self.program_type == "promotion_program"
             and self.promo_applicability == "on_next_order"
+            and not self.force_product_categ_id
         ):
+            # If several default categories found, just take the first
             default_categ = self.env["product.category"].search(
                 [("default_promotion_next_order_category", "=", True)], limit=1
             )
             if default_categ:
-                self.related_product_categ_id = default_categ.id
+                self.force_product_categ_id = default_categ.id
 
-    @api.constrains("related_product_categ_id", "reward_type", "discount_type")
+    @api.onchange("discount_line_product_chosen")
+    def _onchange_discount_line_product_chosen(self):
+        for rec in self:
+            rec.force_product_default_code = False
+
+    @api.onchange("force_product_categ_id")
+    def _onchange_force_product_categ_id(self):
+        for rec in self:
+            rec.discount_line_product_id = False
+
+    @api.constrains("force_product_categ_id", "reward_type", "discount_type")
     def _check_program_options(self):
         for rec in self:
-            categ = rec.related_product_categ_id
-            if categ._predicate_product_categ_with_opts():
-                categ.program_option_ids.validate_program(
-                    rec, excluded_paths=[DISCOUNT_PRODUCT_FNAME]
+            category = rec.force_product_categ_id
+            if category.program_product_discount_fixed_amount and not (
+                rec.reward_type == "discount" and rec.discount_type == "fixed_amount"
+            ):
+                raise UserError(
+                    _(
+                        "With 'program_product_discount_fixed_amount' category, "
+                        "the reward type must be 'discount' and "
+                        "the discount type must be 'Fixed Amount'."
+                    )
                 )
 
-    def _get_reward_line_product_extra_create_vals(self, vals):
-        self.ensure_one()
-        extra_vals = {}
-        for fname, val in vals.items():
-            # Only care about related product truthy vals.
-            if fname.startswith(PRODUCT_FNAME_PREFIX) and val:
-                # Remove prefix.
-                product_fname = fname[len(PRODUCT_FNAME_PREFIX) :]
-                extra_vals[product_fname] = val
-        return extra_vals
+    def _check_no_product_duplicate(self):
+        for rec in self:
+            other_program_found = self.search_count(
+                [
+                    ("discount_line_product_id", "=", rec.discount_line_product_id.id),
+                    ("id", "!=", rec.id),
+                ]
+            )
+            if other_program_found:
+                raise UserError(
+                    _(
+                        "This reward line product is already used "
+                        "into another program."
+                    )
+                )
 
-    def _prepare_forced_product_vals(self):
-        self.ensure_one()
-        forced_product_vals = {"name": self.name}
-        categ = self.related_product_categ_id
-        if categ._predicate_product_categ_with_opts():
-            options = categ.program_option_ids
-            extra_product_vals = options.get_program_values(program=self)[
-                DISCOUNT_PRODUCT_FNAME
-            ]
-            forced_product_vals.update(extra_product_vals)
-        return forced_product_vals
+    def _force_values_on_product(self):
+        product = self.discount_line_product_id
+        # Check and force product category
+        if product.categ_id != self.force_product_categ_id:
+            product.categ_id = self.force_product_categ_id
+        # Check and force product sale_ok code from category
+        if product.sale_ok != product.categ_id.program_product_sale_ok:
+            product.sale_ok = product.categ_id.program_product_sale_ok
+        # Check and force product price from program
+        if self.force_product_categ_id.program_product_discount_fixed_amount:
+            product.lst_price = self.discount_fixed_amount
+        if not self.discount_line_product_chosen:
+            # Check and force product name from program
+            if not self.discount_line_product_chosen:
+                product.name = self.name
+            # Check and force product default code from program
+            if self.force_product_default_code:
+                product.default_code = self.force_product_default_code
+
+    def _create_custom_discount_line_product(self, name, category_id):
+        values = {
+            "name": name,
+            "categ_id": category_id,
+            "type": "service",
+            "taxes_id": False,
+            "supplier_taxes_id": False,
+            "sale_ok": False,
+            "purchase_ok": False,
+            "invoice_policy": "order",
+            "lst_price": 0,
+        }
+        return self.env["product.product"].create(values)
 
     @api.model
     def create(self, vals):
-        """Extend to initially update related product values.
-
-        Related fields on product won't be updated by default, because
-        product is created after related program creation.
-        """
-        # Using virtual record here, so we can pass product values when
-        # product is created (this avoids multiple product update calls).
-        program_new = self.new(values=vals)
-        product_extra_vals = program_new._get_reward_line_product_extra_create_vals(
-            vals
-        )
-        self = self.with_context(
-            forced_product_vals=dict(
-                product_extra_vals, **program_new._prepare_forced_product_vals()
+        if "discount_line_product_id" not in vals:
+            product = self._create_custom_discount_line_product(
+                vals["name"], vals["force_product_categ_id"]
             )
-        )
-        return super(SaleCouponProgram, self).create(vals)
+            vals["discount_line_product_id"] = product.id
+        program = super().create(vals)
+        # Force values on generated product
+        program._force_values_on_product()
+        # Check we don't have a same product used on 2 programs
+        program._check_no_product_duplicate()
+        return program
 
     def write(self, vals):
-        """Extend to update force update product name from program name.
-
-        Name can be updated via forced_product_vals context, when
-        product update is triggered by original implementation, or can
-        be forced updated directly, when those dependencies are not
-        changed.
-        """
-        for rec in self:
-            name = vals.get("name") or rec.name
-            rec = rec.with_context(forced_product_vals={"name": name})
-            product_update = any(field in PRODUCT_NAME_DEPS for field in vals)
-            super(SaleCouponProgram, rec).write(vals)
-            # Directly update only if it was not updated from original
-            # implementation already.
-            if not product_update:
-                rec.discount_line_product_id.name = name
-        return True  # expected write return val.
+        for program in self:
+            if vals.get(
+                "discount_line_product_chosen", program.discount_line_product_chosen
+            ):
+                # Save the product name to restore it after core override
+                if "discount_line_product_id" in vals:
+                    product = self.env["product.product"].browse(
+                        vals["discount_line_product_id"]
+                    )
+                    current_product_name = product.name
+                else:
+                    current_product_name = program.discount_line_product_id.name
+            else:
+                current_product_name = False
+            # Call super to update program
+            super(SaleCouponProgram, program).write(vals)
+            # Create default product if missing and not chosen
+            if not program.discount_line_product_chosen:
+                if not program.discount_line_product_id:
+                    product = self._create_custom_discount_line_product(
+                        program.name, program.force_product_categ_id.id
+                    )
+                    program.discount_line_product_id = product
+            # Restore original product name
+            if (
+                current_product_name
+                and program.discount_line_product_id.name != current_product_name
+            ):
+                program.discount_line_product_id.name = current_product_name
+            # Force values on generated product
+            program._force_values_on_product()
+            # Check we don't have a same product used on 2 programs
+            program._check_no_product_duplicate()
+        return True
