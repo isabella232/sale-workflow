@@ -6,17 +6,18 @@
         <field name="inherit_id" ref="product.product_category_form_view" />
         <field name="arch" type="xml">
             <field name="parent_id" position="after">
-                <field name="is_promotion_category" />
-                <field name="is_coupon_category" />
+                <field name="is_program_category" />
                 <field
                     name="default_promotion_next_order_category"
-                    attrs="{'invisible': [('is_promotion_category', '=', False)]}"
+                    attrs="{'invisible': [('is_program_category', '=', False)]}"
                 />
                 <field
-                    name="program_option_ids"
-                    widget="many2many_tags"
-                    attrs="{'invisible': [('is_promotion_category', '=', False), ('is_coupon_category', '=', False)]}"
-                    options="{'no_create_edit': True, 'no_quick_create': True}"
+                    name="program_product_sale_ok"
+                    attrs="{'invisible': [('is_program_category', '=', False)]}"
+                />
+                <field
+                    name="program_product_discount_fixed_amount"
+                    attrs="{'invisible': [('is_program_category', '=', False)]}"
                 />
             </field>
         </field>

@@ -54,7 +54,7 @@ class TestSaleCouponManage(TestSaleCouponProductManageCommon):
     def test_02_program_discount_product_rel_vals(self):
         """Check if option values are passed to product.
 
-        Case: on program create - passing sale_ok, list_price.
+        Case: on program create - passing sale_ok, lst_price.
         """
         options = self.program_option_sale_ok | self.program_option_fixed_amount
         self.product_category_coupon.program_option_ids = [(6, 0, options.ids)]
@@ -71,7 +71,7 @@ class TestSaleCouponManage(TestSaleCouponProductManageCommon):
         )
         product = program.discount_line_product_id
         self.assertTrue(product.sale_ok)
-        self.assertEqual(product.list_price, 1000)
+        self.assertEqual(product.lst_price, 1000)
 
     def test_03_check_program_options(self):
         """Validate if program values match its related options.
