@@ -10,11 +10,9 @@
     "license": "AGPL-3",
     "depends": ["sale_coupon"],
     "data": [
-        "security/ir.model.access.csv",
-        "data/sale_coupon_program_option_data.xml",
         "views/product_category_views.xml",
+        "views/product_product_views.xml",
         "views/sale_coupon_program_views.xml",
-        "views/sale_coupon_program_option_views.xml",
     ],
     "installable": True,
 }
