@@ -75,14 +75,9 @@ msgid "Internal Reference"
 msgstr "Référence"
 
 #. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_coupon_category
-msgid "Is Coupon Category"
-msgstr "Est une catégorie de bons de réduction"
-
-#. module: sale_coupon_product_management
-#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_promotion_category
-msgid "Is Promotion Category"
-msgstr "Est une catégorie de promotion"
+#: model:ir.model.fields,field_description:sale_coupon_product_management.field_product_category__is_program_category
+msgid "Is Program Category"
+msgstr "Est une catégorie de programme"
 
 #. module: sale_coupon_product_management
 #: model:ir.model.fields,field_description:sale_coupon_product_management.field_sale_coupon_program_option____last_update
