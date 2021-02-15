@@ -104,14 +104,14 @@ class SaleCouponProgram(models.Model):
             if self.force_product_default_code:
                 product.default_code = self.force_product_default_code
 
-    def _create_custom_discount_line_product(self, name, category_id):
+    def _create_custom_discount_line_product(self, name, category):
         values = {
             "name": name,
-            "categ_id": category_id,
+            "categ_id": category.id,
             "type": "service",
             "taxes_id": False,
             "supplier_taxes_id": False,
-            "sale_ok": False,
+            "sale_ok": category.program_product_sale_ok,
             "purchase_ok": False,
             "invoice_policy": "order",
             "lst_price": 0,
@@ -123,9 +123,12 @@ class SaleCouponProgram(models.Model):
         if not vals.get("force_product_categ_id"):
             # Do nothing: we provides from unit tests or specific code
             return super().create(vals)
-        if "discount_line_product_id" not in vals:
+        if not vals.get("discount_line_product_id"):
+            category = self.env["product.category"].browse(
+                vals["force_product_categ_id"]
+            )
             product = self._create_custom_discount_line_product(
-                vals["name"], vals["force_product_categ_id"]
+                vals["name"], category
             )
             vals["discount_line_product_id"] = product.id
         program = super().create(vals)
@@ -162,7 +165,7 @@ class SaleCouponProgram(models.Model):
             if not program.discount_line_product_chosen:
                 if not program.discount_line_product_id:
                     product = self._create_custom_discount_line_product(
-                        program.name, program.force_product_categ_id.id
+                        program.name, program.force_product_categ_id
                     )
                     program.discount_line_product_id = product
             # Restore original product name
