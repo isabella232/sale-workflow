@@ -39,15 +39,13 @@ class SaleCouponProgram(models.Model):
 
     @api.onchange("discount_line_product_chosen")
     def _onchange_discount_line_product_chosen(self):
-        for rec in self:
-            rec.force_product_default_code = False
-            if rec.discount_line_product_id:
-                rec.discount_line_product_id = False
+        self.force_product_default_code = False
+        if self.discount_line_product_id:
+            self.discount_line_product_id = False
 
     @api.onchange("force_product_categ_id")
     def _onchange_force_product_categ_id(self):
-        for rec in self:
-            rec.discount_line_product_id = False
+        self.discount_line_product_id = False
 
     @api.constrains("force_product_categ_id", "reward_type", "discount_type")
     def _check_program_options(self):

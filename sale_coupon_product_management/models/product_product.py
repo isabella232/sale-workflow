@@ -23,6 +23,7 @@ class ProductProduct(models.Model):
             if (
                 self.program_product_discount_fixed_amount
                 and isinstance(self.id, models.NewId)
+                # origin of the NewId (contains the id of the record if exists)
                 and not self.id.origin
             ):
                 self.lst_price = False
