@@ -13,12 +13,5 @@ class SaleOrderLine(models.Model):
         comodel_name="sale.coupon.consumption_line",
         inverse_name="sale_order_line_id",
         readonly=True,
+        ondelete="cascade",
     )
-
-    def unlink(self):
-        consumption_lines = self.mapped("coupon_consumption_line_ids")
-        if consumption_lines:
-            # Remove related consumption lines
-            # Using sudo because no user can remove consumption lines
-            consumption_lines.sudo().unlink()
-        return super().unlink()
