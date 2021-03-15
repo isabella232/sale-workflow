@@ -11,10 +11,7 @@ class ProductPricelist(models.Model):
     def get_products_price(
         self, products, quantities, partners, date=False, uom_id=False
     ):
-        new_date = date
         force_pricelist_date = self.env.context.get("force_pricelist_date")
         if force_pricelist_date:
-            new_date = force_pricelist_date
-        return super().get_products_price(
-            products, quantities, partners, new_date, uom_id
-        )
+            date = force_pricelist_date
+        return super().get_products_price(products, quantities, partners, date, uom_id)
