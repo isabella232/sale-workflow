@@ -13,7 +13,7 @@ class SaleOrder(models.Model):
         for line in self.order_line:
             # Price unit is still modifiable if not quantity invoiced
             if not line.qty_invoiced:
-                # Call product_uom_change as it only update price_unit using pricelist
+                # Call product_uom_change as it only updates price_unit using pricelist
                 line.with_context(
                     force_pricelist_date=self.commitment_date
                 ).product_uom_change()
