@@ -62,7 +62,7 @@ class SaleOrder(models.Model):
         return result
 
     def sale_check_exception(self):
-        orders = self.filtered(lambda s: s.state == "sale")
+        orders = self.filtered(lambda s: s.state == "sale" and not s.ignore_exception)
         if orders:
             orders._check_exception()
 
