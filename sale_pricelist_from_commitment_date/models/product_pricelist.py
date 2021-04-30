@@ -34,7 +34,9 @@ class ProductPricelist(models.Model):
             date = force_pricelist_date
         return super().get_product_price(product, quantity, partner, date, uom_id)
 
-    def get_product_price_rule(self, product, quantity, partner, date=False, uom_id=False):
+    def get_product_price_rule(
+        self, product, quantity, partner, date=False, uom_id=False
+    ):
         force_pricelist_date = self.env.context.get("force_pricelist_date")
         if force_pricelist_date:
             date = force_pricelist_date
