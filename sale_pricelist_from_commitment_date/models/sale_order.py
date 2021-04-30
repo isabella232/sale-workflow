@@ -41,3 +41,10 @@ class SaleOrder(models.Model):
             ):
                 sale._apply_pricelist_from_commitment_date()
         return True
+
+    def update_prices(self):
+        self.ensure_one()
+        return super(
+            SaleOrder,
+            self.with_context(force_pricelist_date=self.commitment_date),
+        ).update_prices()
