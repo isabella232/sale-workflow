@@ -45,14 +45,6 @@ class SaleOrder(models.Model):
                 value = [(6, 0, products.ids)]
             sale.season_allowed_product_ids = value
 
-    # TODO: move to sale_exception_seasonality?
-    def _fields_trigger_check_exception(self):
-        res = super()._fields_trigger_check_exception()
-        res.extend(
-            ["commitment_date", "seasonal_config_id", "season_allowed_product_ids"]
-        )
-        return res
-
     def _round_dates(self):
         """TODO"""
         commitment_date = roundTime(dt=self.commitment_date, minutes=5)

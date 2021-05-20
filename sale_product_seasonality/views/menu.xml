@@ -10,7 +10,7 @@
         name="Product seasonal config"
         sequence="100"
         parent="sale.product_menu_catalog"
-        action="seasonal_config_act_window"
+        action="product_seasonality.seasonal_config_act_window"
     />
 
     <menuitem
@@ -18,7 +18,7 @@
         name="Product seasonal config lines"
         sequence="110"
         parent="sale.product_menu_catalog"
-        action="seasonal_config_line_act_window"
+        action="product_seasonality.seasonal_config_line_act_window"
     />
 
 </odoo>
