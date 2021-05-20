@@ -1,0 +1,1 @@
+odoo14-addon-product-seasonality @ git+https://github.com/OCA/product-attribute@refs/pull/855/head#subdirectory=setup/product_seasonality
