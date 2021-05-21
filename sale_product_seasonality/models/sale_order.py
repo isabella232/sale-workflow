@@ -13,10 +13,12 @@ class SaleOrder(models.Model):
     # TODO: any better name for this field?
     date_end = fields.Datetime()
     seasonal_config_id = fields.Many2one(
+        string="Seasonal configuration",
         comodel_name="seasonal.config",
         default=lambda self: self._default_seasonal_config_id(),
     )
     season_allowed_product_ids = fields.Many2many(
+        string="Season allowed products",
         comodel_name="product.product",
         column1="sale_id",
         column2="product_id",
