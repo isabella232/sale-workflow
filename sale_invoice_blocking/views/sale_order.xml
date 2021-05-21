@@ -8,7 +8,7 @@
             <field name="client_order_ref" position="after">
                 <field name="invoice_blocking_reason_id" />
             </field>
-            <xpath
+            <!--xpath
                 expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d'][contains(concat(' ',normalize-space(@class),' '),' btn-primary ')]"
                 position="attributes"
             >
@@ -23,7 +23,7 @@
                 <attribute
                     name="attrs"
                 >{'invisible': ['|', '|', ('invoice_status', '!=', 'no'), ('state', '!=', 'sale'), ('invoice_blocking_reason_id', '!=', False)]}</attribute>
-            </xpath>
+            </xpath-->
         </field>
     </record>
 

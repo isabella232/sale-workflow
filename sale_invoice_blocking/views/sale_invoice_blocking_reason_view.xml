@@ -38,6 +38,7 @@
         <field name="res_model">invoice.blocking.reason</field>
         <field name="search_view_id" ref="invoice_blocking_reason_search_view" />
         <field name="view_id" ref="invoice_blocking_reason_list_view" />
+        <field name="view_mode">tree,form</field>
     </record>
 
 </odoo>

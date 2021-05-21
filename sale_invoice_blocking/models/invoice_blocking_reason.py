@@ -7,4 +7,4 @@ class InvoiceBlockingReason(models.Model):
     _name = "invoice.blocking.reason"
     _description = "Sale invoice blocking reason"
 
-    name = fields.Char(string="Motif")
+    name = fields.Char(string="Reason", required=True)

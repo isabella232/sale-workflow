@@ -66,13 +66,13 @@ msgstr "Dernière modification le"
 
 #. module: sale_invoice_blocking
 #: model:ir.model.fields,field_description:sale_invoice_blocking.field_invoice_blocking_reason__name
-msgid "Motif"
-msgstr ""
+msgid "Reason"
+msgstr "Motif"
 
 #. module: sale_invoice_blocking
 #: model:ir.model,name:sale_invoice_blocking.model_invoice_blocking_reason
 msgid "Sale invoice blocking reason"
-msgstr "Motifs de blocage de la facturation"
+msgstr "Motif de blocage de la facturation"
 
 #. module: sale_invoice_blocking
 #: model:ir.model,name:sale_invoice_blocking.model_sale_order
