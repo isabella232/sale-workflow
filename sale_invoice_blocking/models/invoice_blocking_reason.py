@@ -8,3 +8,11 @@ class InvoiceBlockingReason(models.Model):
     _description = "Sale invoice blocking reason"
 
     name = fields.Char(string="Reason", required=True)
+
+    _sql_constraints = [
+        (
+            "name_uniq",
+            "unique (name)",
+            "You cannot have two invoice blocking reasons with the same name.",
+        )
+    ]
