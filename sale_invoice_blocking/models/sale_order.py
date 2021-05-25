@@ -21,6 +21,13 @@ class SaleOrder(models.Model):
         ):
             order.invoice_status = "no"
 
+    def _get_invoiceable_lines(self, final=False):
+        """Return the invoiceable lines for order `self`."""
+        if self.invoice_blocking_reason_id:
+            return self.env["sale.order.line"]
+
+        return super()._get_invoiceable_lines(final=final)
+
     @api.model
     def _nothing_to_invoice_error(self):
         error = super()._nothing_to_invoice_error()
