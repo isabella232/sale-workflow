@@ -12,7 +12,10 @@ class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     def _recalculate_prices_get_fields(self):
-        return ["price_unit", "discount"]
+        return ["price_unit"]
+
+    def _reset_prices_get_fields(self):
+        return ["discount"]
 
     def recalculate_prices(self):
         for line in self.mapped("order_line"):
@@ -20,7 +23,8 @@ class SaleOrder(models.Model):
             if "product_tmpl_id" in line._fields:
                 vals["product_tmpl_id"] = line.product_tmpl_id
             line2 = self.env["sale.order.line"].new(vals)
-            fields_to_write = self._recalculate_prices_get_fields()
+            fields_to_reset = self._reset_prices_get_fields()
+            fields_to_write = self._recalculate_prices_get_fields() + fields_to_reset
             for field in fields_to_write:
                 vals.pop(field)
             # Use onchange_helper
@@ -29,6 +33,9 @@ class SaleOrder(models.Model):
             for field in fields_to_write:
                 if field in result:
                     vals.update({field: result.get(field)})
+                elif field in fields_to_reset:
+                    vals.update({field: 0.0})
+
             if vals:
                 line.write(vals)
         return True
