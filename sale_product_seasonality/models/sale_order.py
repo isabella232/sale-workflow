@@ -24,6 +24,13 @@ class SaleOrder(models.Model):
         column2="product_id",
         compute="_compute_season_allowed_product_ids",
     )
+    season_allowed_product_template_ids = fields.Many2many(
+        string="Season allowed product templates",
+        comodel_name="product.template",
+        column1="sale_id",
+        column2="product_template_id",
+        compute="_compute_season_allowed_product_ids",
+    )
 
     def _default_seasonal_config_id(self):
         return self.env.user.company_id.default_seasonal_config_id
@@ -42,10 +49,13 @@ class SaleOrder(models.Model):
     def _compute_season_allowed_product_ids(self):
         for sale in self:
             value = [(5, 0)]
+            value_template = [(5, 0)]
             if sale.commitment_date:
                 products = sale._get_allowed_products(sale.commitment_date)
                 value = [(6, 0, products.ids)]
+                value_template = [(6, 0, products.mapped("product_tmpl_id.id"))]
             sale.season_allowed_product_ids = value
+            sale.season_allowed_product_template_ids = value_template
 
     def _round_dates(self):
         """Round dates to have a meaningful comparison time frame."""

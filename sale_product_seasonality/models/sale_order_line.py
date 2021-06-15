@@ -9,3 +9,6 @@ class SaleOrderLine(models.Model):
     season_allowed_product_ids = fields.Many2many(
         related="order_id.season_allowed_product_ids"
     )
+    season_allowed_product_template_ids = fields.Many2many(
+        related="order_id.season_allowed_product_template_ids"
+    )

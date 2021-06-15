@@ -18,6 +18,7 @@
                 position="before"
             >
                 <field name="season_allowed_product_ids" invisible="1" />
+                <field name="season_allowed_product_template_ids" invisible="1" />
             </xpath>
             <xpath
                 expr="//field[@name='order_line']//tree//field[@name='product_id']"
@@ -26,6 +27,15 @@
                 <attribute
                     name="domain"
                 >[('id', 'in', season_allowed_product_ids)]</attribute>
+                <attribute name="options">{"no_create": True}</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='order_line']//tree//field[@name='product_template_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="domain"
+                >[('id', 'in', season_allowed_product_template_ids)]</attribute>
                 <attribute name="options">{"no_create": True}</attribute>
             </xpath>
             <xpath expr="//notebook" position="inside">
