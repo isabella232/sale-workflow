@@ -30,12 +30,19 @@ class SaleOrder(models.Model):
 
     def _get_allowed_products(self, date):
         self.ensure_one()
-        products = self.env["product.product"]
+        product_ids = []
         if date:
-            config_lines = self.mapped("seasonal_config_id.line_ids")
-            products = config_lines.filtered(lambda l: l.is_sale_ok(date)).mapped(
-                "product_id"
+            config_lines = self.mapped("seasonal_config_id.line_ids").filtered(
+                lambda l: l.is_sale_ok(date)
             )
+            for config_line in config_lines:
+                if config_line.product_id:
+                    product_ids.append(config_line.product_id.id)
+                else:
+                    product_ids.extend(
+                        config_line.product_template_id.product_variant_ids.ids
+                    )
+        products = self.env["product.product"].browse(product_ids)
         return products
 
     @api.depends("commitment_date", "seasonal_config_id.line_ids")
