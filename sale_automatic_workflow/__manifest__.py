@@ -5,7 +5,7 @@
 
 {
     "name": "Sale Automatic Workflow",
-    "version": "13.0.1.2.2",
+    "version": "13.0.1.3.0",
     "category": "Sales Management",
     "license": "AGPL-3",
     "author": "Akretion, "
@@ -13,7 +13,7 @@
     "Sodexis, "
     "Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/sale-workflow",
-    "depends": ["sale_stock", "sales_team"],
+    "depends": ["sale_stock", "sales_team", "sale_delivery_state"],
     "data": [
         "security/ir.model.access.csv",
         "views/sale_view.xml",
