@@ -39,7 +39,10 @@ class ResPartner(models.Model):
         for dwin_start in datetime_windows:
             if dwin_start >= from_date:
                 return dwin_start
-        raise UserError(_("Something went wrong trying to find next delivery window"))
+        raise UserError(
+            _("Something went wrong trying to find next delivery window. Date: %s")
+            % str(from_date)
+        )
 
     def get_next_workdays_datetime(self, from_datetime, to_datetime):
         """Returns all the delivery windows in the provided date range.
