@@ -17,7 +17,7 @@ class SaleOrder(models.Model):
     all_qty_delivered = fields.Boolean(
         compute="_compute_all_qty_delivered",
         string="All quantities delivered",
-        store=False,
+        store=True,
     )
 
     @api.depends("delivery_state")
