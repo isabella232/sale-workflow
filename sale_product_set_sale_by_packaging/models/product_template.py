@@ -35,7 +35,7 @@ class ProductTemplate(models.Model):
             FROM
                 product_set_line
             WHERE
-                product_id in (%s)
+                product_id in %s
             AND
                 product_packaging_id IS NULL
         """
