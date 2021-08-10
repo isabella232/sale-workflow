@@ -1,0 +1,1 @@
+odoo14-addon-mail_autosubscribe @git+https://github.com/OCA/social@refs/pull/754/head#subdirectory=setup/mail_autosubscribe
