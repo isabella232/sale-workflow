@@ -33,7 +33,7 @@ class SaleOrder(models.Model):
         if res and "warning" in res:
             return res
         ps = self.partner_shipping_id
-        if self.commitment_date and ps.delivery_time_preference != "anytime":
+        if ps and self.commitment_date and ps.delivery_time_preference != "anytime":
             if not ps.is_in_delivery_window(self.commitment_date):
                 return {"warning": self._commitment_date_no_delivery_window_match_msg()}
 
