@@ -27,4 +27,5 @@
         "views/stock_picking.xml",
         "views/stock_warehouse.xml",
     ],
+    "pre_init_hook": "pre_init_hook",
 }
