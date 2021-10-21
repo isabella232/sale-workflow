@@ -3,8 +3,6 @@
 
 from openupgradelib import openupgrade  # pylint: disable=W7936
 
-from odoo import SUPERUSER_ID, api
-
 MERGED_MODULE_NAMES = (
     "sale_warehouse_calendar",
     "sale_cutoff_time_delivery",
@@ -13,15 +11,14 @@ MERGED_MODULE_NAMES = (
 )
 
 
-def pre_init_hook(cr, registry):
+def pre_init_hook(cr):
     """Since 4 modules (sale_warehouse_calendar, sale_cutoff_time_delivery,
     sale_partner_delivery_window, sale_partner_cutoff_delivery_window)
     are merged into this one, we have to set the previous modules as
     uninstalled, as well as we need to update the module names in ir_model_data
     """
-    env = api.Environment(cr, SUPERUSER_ID, {})
     modules_to_merge = [
         (merged_module_name, "sale_delivery_date")
         for merged_module_name in MERGED_MODULE_NAMES
     ]
-    openupgrade.update_module_names(env.cr, modules_to_merge, merge_modules=True)
+    openupgrade.update_module_names(cr, modules_to_merge, merge_modules=True)
