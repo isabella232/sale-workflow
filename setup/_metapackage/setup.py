@@ -8,6 +8,7 @@ setuptools.setup(
     description="Meta package for oca-sale-workflow Odoo addons",
     version=version,
     install_requires=[
+        'odoo13-addon-partner_contact_sale_info_propagation',
         'odoo13-addon-partner_prospect',
         'odoo13-addon-partner_sale_pivot',
         'odoo13-addon-portal_sale_personal_data_only',
@@ -73,6 +74,7 @@ setuptools.setup(
         'odoo13-addon-sale_product_multi_add',
         'odoo13-addon-sale_product_set',
         'odoo13-addon-sale_product_set_packaging_qty',
+        'odoo13-addon-sale_product_set_sale_by_packaging',
         'odoo13-addon-sale_quotation_number',
         'odoo13-addon-sale_secondary_salesperson',
         'odoo13-addon-sale_shipping_info_helper',

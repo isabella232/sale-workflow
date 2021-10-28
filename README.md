@@ -22,12 +22,13 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[partner_contact_sale_info_propagation](partner_contact_sale_info_propagation/) | 13.0.1.0.0 |  | Propagate Salesperson and Sales Channel from Company to Contacts
 [partner_prospect](partner_prospect/) | 13.0.1.0.0 |  | Partner Prospect
 [partner_sale_pivot](partner_sale_pivot/) | 13.0.1.1.0 | [![ernestotejeda](https://github.com/ernestotejeda.png?size=30px)](https://github.com/ernestotejeda) | Sales analysis from customer form view
 [portal_sale_personal_data_only](portal_sale_personal_data_only/) | 13.0.1.1.0 |  | Portal Sale Personal Data Only
 [product_form_sale_link](product_form_sale_link/) | 13.0.1.0.1 |  | Adds a button on product forms to access Sale Lines
 [product_supplierinfo_for_customer_sale](product_supplierinfo_for_customer_sale/) | 13.0.1.0.0 |  | Loads in every sale order line the customer code defined in the product
-[sale_automatic_workflow](sale_automatic_workflow/) | 13.0.1.3.0 |  | Sale Automatic Workflow
+[sale_automatic_workflow](sale_automatic_workflow/) | 13.0.2.0.0 |  | Sale Automatic Workflow
 [sale_automatic_workflow_delivery_state](sale_automatic_workflow_delivery_state/) | 13.0.1.0.1 |  | Glue module for sale_automatic_workflow and sale_delivery_state
 [sale_automatic_workflow_payment](sale_automatic_workflow_payment/) | 13.0.1.0.0 | [![rousseldenis](https://github.com/rousseldenis.png?size=30px)](https://github.com/rousseldenis) | Assign a workflow if a transaction is created for a sale order with an acquirer with a workflow
 [sale_automatic_workflow_payment_mode](sale_automatic_workflow_payment_mode/) | 13.0.1.1.0 |  | Sale Automatic Workflow - Payment Mode
@@ -87,6 +88,7 @@ addon | version | maintainers | summary
 [sale_product_multi_add](sale_product_multi_add/) | 13.0.1.0.1 |  | Sale Product Multi Add
 [sale_product_set](sale_product_set/) | 13.0.1.2.1 |  | Sale product set
 [sale_product_set_packaging_qty](sale_product_set_packaging_qty/) | 13.0.1.0.1 |  | Manage packaging and quantities on product set lines
+[sale_product_set_sale_by_packaging](sale_product_set_sale_by_packaging/) | 13.0.1.0.0 |  | Glue module between `sale_by_packaging` and `sale_product_set_packaging_qty`.
 [sale_quotation_number](sale_quotation_number/) | 13.0.1.0.0 |  | Different sequence for sale quotations
 [sale_secondary_salesperson](sale_secondary_salesperson/) | 13.0.1.0.0 | [![victoralmau](https://github.com/victoralmau.png?size=30px)](https://github.com/victoralmau) | Sale Secondary Salesperson
 [sale_shipping_info_helper](sale_shipping_info_helper/) | 13.0.1.0.0 |  | Add shipping amounts on sale order
