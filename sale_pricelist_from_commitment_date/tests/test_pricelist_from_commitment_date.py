@@ -60,7 +60,7 @@ class PricelistFromCommitmentDate(SavepointCase):
             values["date_end"] = date_end
         return cls.env["product.pricelist.item"].create(values)
 
-    def test_pricelist(self):
+    def test_00_pricelist(self):
         sale = self.sale
         order_line = sale.order_line[0]
         product = order_line.product_id
@@ -90,3 +90,42 @@ class PricelistFromCommitmentDate(SavepointCase):
         # Simulate change of product as the date order must no change normally
         order_line.product_id_change()
         self.assertEqual(order_line.price_unit, product.list_price)
+
+    def test_01_import(self):
+        # These are the values we'll use to create the file to import
+        partner = self.env.ref("base.res_partner_2")
+        product = self.env.ref("product.product_product_8")
+        user = self.env.ref("base.user_demo")
+        vals = {
+            "id": "__import__.sale_order_test_pricelist_from_commitment_date",
+            "name": "Test Pricelist From Commitment Date",
+            "partner_id": partner.name,
+            "user_id": user.name,
+            "order_line/product_id": product.name,
+            "order_line/product_uom_qty": "1",
+            "order_line/price_unit": "300.00",
+            "commitment_date": "2021-10-22 6:30:00",
+        }
+        file = "{}\r\n{}".format(",".join(vals.keys()),",".join(vals.values()))
+        # Create the importer and run it
+        res = self.env['base_import.import'].create({
+            'res_model': 'sale.order',
+            'file': file.encode("utf-8"),
+            'file_type': 'text/csv',
+            'file_name': 'data.csv',
+        }).do(
+            fields=list(vals.keys()),
+            columns=list(vals.keys()),
+            options={
+                'quoting': '"',
+                'separator': ',',
+                'headers': True,
+                'encoding': "utf-8",
+                'datetime_format': "%Y-%m-%d %H:%M:%S",
+            }
+        )
+        # Check if the order line's price unit is the expected one
+        order = self.env["sale.order"].browse(res["ids"])
+        real_pu = order.order_line[0].price_unit
+        expected_pu = float(vals["order_line/price_unit"])
+        self.assertEqual(real_pu, expected_pu)
