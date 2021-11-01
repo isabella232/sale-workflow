@@ -1,6 +1,6 @@
-# Copyright 2019 Camptocamp SA
+# Copyright 2019-2021 Camptocamp SA
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl)
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class SaleQuotationSynchronizer(models.TransientModel):
@@ -40,7 +40,7 @@ class SaleQuotationSynchronizer(models.TransientModel):
             order_line.write({"price_unit": new_price})
 
     def _sync_sale_quote_lines(self, product):
-        sale_quote_lines = self.env["sale.quote.line"].search(
+        sale_quote_lines = self.env["sale.order.template.line"].search(
             [
                 ("product_id", "=", product.id),
             ]
@@ -54,7 +54,7 @@ class SaleQuotationSynchronizer(models.TransientModel):
             quote_line.write({"price_unit": new_price})
 
     def _sync_sale_quote_options(self, product):
-        sale_quote_options = self.env["sale.quote.option"].search(
+        sale_quote_options = self.env["sale.order.template.option"].search(
             [
                 ("product_id", "=", product.id),
             ]
@@ -65,7 +65,6 @@ class SaleQuotationSynchronizer(models.TransientModel):
                 new_price = product.uom_id._compute_quantity(1, quote_option.uom_id)
             quote_option.write({"price_unit": new_price})
 
-    @api.multi
     def execute(self):
         self.ensure_one()
         for product in self.product_ids:

@@ -6,20 +6,13 @@ class TestQuotationSynchronizer(common.SavepointCase):
     def setUpClass(cls):
         super(TestQuotationSynchronizer, cls).setUpClass()
         cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
-        cls.any_customer = cls.env["res.partner"].search(
-            [
-                ("customer", "=", True),
-            ],
-            limit=1,
-        )
-        cls.template_default = cls.env.ref(
-            "website_quote.website_quote_template_default"
-        )
+        cls.customer_id = cls.env["res.partner"].create({"name": "My Test Customer"}).id
+        cls.template_default = cls.env.ref("sale_management.sale_order_template_1")
         cls.product_2 = cls.env.ref("product.product_product_2")
         cls.product_3 = cls.env.ref("product.product_product_3")
         cls.template_default.write(
             {
-                "quote_line": [
+                "sale_order_template_line_ids": [
                     (
                         0,
                         0,
@@ -33,7 +26,7 @@ class TestQuotationSynchronizer(common.SavepointCase):
                         },
                     ),
                 ],
-                "options": [
+                "sale_order_template_option_ids": [
                     (
                         0,
                         0,
@@ -52,7 +45,7 @@ class TestQuotationSynchronizer(common.SavepointCase):
     def test_price_propagation(self):
         order = self.env["sale.order"].create(
             {
-                "partner_id": self.any_customer.id,
+                "partner_id": self.customer_id,
                 "template_id": self.template_default.id,
             }
         )
