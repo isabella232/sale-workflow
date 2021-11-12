@@ -27,5 +27,8 @@
         "views/stock_picking.xml",
         "views/stock_warehouse.xml",
     ],
+    "external_dependencies": {
+        "python": ["openupgradelib"],
+    },
     "pre_init_hook": "pre_init_hook",
 }
