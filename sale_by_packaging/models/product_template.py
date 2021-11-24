@@ -34,9 +34,6 @@ class ProductTemplate(models.Model):
             if len(record.product_variant_ids) == 1:
                 # Pick the value from the variantif there's only 1
                 record.min_sellable_qty = record.product_variant_ids.min_sellable_qty
-            elif not record.sell_only_by_packaging:
-                # If not sold by packaging, compute it
-                record.min_sellable_qty = record.uom_id.factor
 
     @api.constrains("sell_only_by_packaging", "sale_ok")
     def _check_sell_only_by_packaging_sale_ok(self):
