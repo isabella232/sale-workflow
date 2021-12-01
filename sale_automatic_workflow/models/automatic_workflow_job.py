@@ -161,9 +161,9 @@ class AutomaticWorkflowJob(models.Model):
         return {
             "reconciled_invoice_ids": [(6, 0, invoice.ids)],
             "amount": invoice.amount_residual,
+            "date": fields.Date.context_today(self),
             "partner_id": invoice.partner_id.id,
             "partner_type": partner_type,
-            "date": fields.Date.context_today(self),
         }
 
     @api.model
@@ -181,6 +181,17 @@ class AutomaticWorkflowJob(models.Model):
                 self._prepare_dict_account_payment(invoice)
             )
             payment.action_post()
+
+            domain = [
+                ("account_internal_type", "in", ("receivable", "payable")),
+                ("reconciled", "=", False),
+            ]
+            payment_lines = payment.line_ids.filtered_domain(domain)
+            lines = invoice.line_ids
+            for account in payment_lines.account_id:
+                (payment_lines + lines).filtered_domain(
+                    [("account_id", "=", account.id), ("reconciled", "=", False)]
+                ).reconcile()
 
     @api.model
     def run_with_workflow(self, sale_workflow):
