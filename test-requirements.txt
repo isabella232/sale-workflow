@@ -1,0 +1,4 @@
+odoo14-addon-sale_quotation_number @git+https://github.com/OCA/sale-workflow@refs/pull/1819/head#subdirectory=setup/sale_quotation_number
+odoo14-addon-sale_isolated_quotation @git+https://github.com/OCA/sale-workflow@refs/pull/1819/head#subdirectory=setup/sale_isolated_quotation
+odoo14-addon-sale_order_type @git+https://github.com/OCA/sale-workflow@refs/pull/1819/head#subdirectory=setup/sale_order_type
+odoo14-addon-sale_partner_version @git+https://github.com/OCA/sale-workflow@refs/pull/1819/head#subdirectory=setup/sale_partner_version
