@@ -61,4 +61,4 @@ class SaleOrder(models.Model):
         return super()._complete_quick_line_vals(vals, lines_key="order_line")
 
     def _add_quick_line(self, product, lines_key=""):
-        return super(SaleOrder, self)._add_quick_line(product, lines_key="order_line")
+        return super()._add_quick_line(product, lines_key="order_line")

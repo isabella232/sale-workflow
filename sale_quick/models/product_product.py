@@ -21,18 +21,19 @@ class ProductProduct(models.Model):
         return super()._default_quick_uom_id()
 
     def _compute_process_qty_sale(self):
-        groups = self.env["sale.order.line"].read_group(
-            [("order_id", "=", self.env.context.get("parent_id"))],
-            fields=["product_id", "product_uom_qty"],
-            groupby=["product_id"],
+        so_lines = self.env["sale.order.line"].search(
+            [("order_id", "=", self.env.context.get("parent_id"))]
         )
-        quantities = {g["product_id"]: g["product_uom_qty"] for g in groups}
-        for rec in self:
-            rec.qty_to_process = quantities.get(rec.id, 0)
+        for product in self:
+            product.qty_to_process = sum(
+                so_lines.filtered(lambda l: l.product_id == product).mapped(
+                    "product_uom_qty"
+                )
+            )
 
     @api.depends("so_line_ids")
     def _compute_process_qty(self):
-        res = super(ProductProduct, self)._compute_process_qty()
+        res = super()._compute_process_qty()
         if self.env.context.get("parent_model", False) == "sale.order":
             self._compute_process_qty_sale()
         return res
@@ -41,10 +42,10 @@ class ProductProduct(models.Model):
     def search(self, args, offset=0, limit=None, order=None, count=False):
         sale = self.env["sale.order"].browse(self.env.context.get("parent_id"))
         if self.env.context.get("in_current_parent") and sale:
-            so_lines = self.env["sale.order.line"].search([("order_id", "=", sale.id)])
+            so_lines = sale.order_line
             args.append(("id", "in", so_lines.mapped("product_id").ids))
 
-        return super(ProductProduct, self).search(
+        return super().search(
             args, offset=offset, limit=limit, order=order, count=count
         )
 
