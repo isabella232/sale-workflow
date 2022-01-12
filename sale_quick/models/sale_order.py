@@ -1,5 +1,6 @@
-# © 2022 Today Camptocamp SA
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# Copyright 2022 Camptocamp SA
+# @author: Damien Crier <damien.crier@camptocamp.com>
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 from odoo import _, models
 from odoo.exceptions import ValidationError
@@ -31,9 +32,8 @@ class SaleOrder(models.Model):
         return res
 
     def _get_quick_line(self, product):
-        result = self.env["sale.order.line"].search(
-            [("product_id", "=", product.id), ("order_id", "=", self.id)]
-        )
+        result = self.order_line.filtered(lambda rec: rec.product_id == product)
+
         nr_lines = len(result.ids)
         if nr_lines > 1:
             raise ValidationError(

@@ -1,5 +1,6 @@
-# © 2022 Today Camptocamp SA
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+# Copyright 2022 Camptocamp SA
+# @author: Damien Crier <damien.crier@camptocamp.com>
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 
 from odoo import api, fields, models
@@ -20,15 +21,14 @@ class ProductProduct(models.Model):
         return super()._default_quick_uom_id()
 
     def _compute_process_qty_sale(self):
-        so_lines = self.env["sale.order.line"].search(
-            [("order_id", "=", self.env.context.get("parent_id"))]
+        groups = self.env["sale.order.line"].read_group(
+            [("order_id", "=", self.env.context.get("parent_id"))],
+            fields=["product_id", "product_uom_qty"],
+            groupby=["product_id"],
         )
-        for product in self:
-            product.qty_to_process = sum(
-                so_lines.filtered(lambda l: l.product_id == product).mapped(
-                    "product_uom_qty"
-                )
-            )
+        quantities = {g["product_id"]: g["product_uom_qty"] for g in groups}
+        for rec in self:
+            rec.qty_to_process = quantities.get(rec.id, 0)
 
     @api.depends("so_line_ids")
     def _compute_process_qty(self):
