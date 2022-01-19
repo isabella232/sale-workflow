@@ -32,7 +32,7 @@ class ProductTemplate(models.Model):
         for record in self:
             record.min_sellable_qty = 0.0
             if len(record.product_variant_ids) == 1:
-                # Pick the value from the variantif there's only 1
+                # Pick the value from the variant if there's only 1
                 record.min_sellable_qty = record.product_variant_ids.min_sellable_qty
 
     @api.constrains("sell_only_by_packaging", "sale_ok")

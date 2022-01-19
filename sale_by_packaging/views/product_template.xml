@@ -13,10 +13,7 @@
                 </div>
             </div>
             <group name="group_general" position="inside">
-              <field
-                    name="min_sellable_qty"
-                    attrs="{'invisible': [('sell_only_by_packaging', '=', False)]}"
-                />
+              <field name="min_sellable_qty" />
             </group>
         </field>
     </record>
@@ -27,11 +24,7 @@
         <field name="arch" type="xml">
             <field name="standard_price" position="after">
               <field name="sell_only_by_packaging" invisible="1" />
-                <field
-                    name="min_sellable_qty"
-                    attrs="{'invisible':['|', ('type', '!=', 'product'), ('sell_only_by_packaging', '=', False)]}"
-                    optional="show"
-                />
+                <field name="min_sellable_qty" optional="show" />
             </field>
         </field>
     </record>
