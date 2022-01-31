@@ -49,7 +49,7 @@ class SaleOrderLine(models.Model):
         )
         res["date_planned"] = date_transfer_done
         # 2) Find the first date in the WH calendar (by going back in the past)
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if calendar:
             res["date_planned"] = calendar.plan_days(
                 -1, res["date_planned"], compute_leaves=True
@@ -130,7 +130,7 @@ class SaleOrderLine(models.Model):
 
     def _get_date_planned_with_warehouse_calendar(self, date_planned):
         """Update the date planned based on the warehouse calendar if any."""
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if date_planned and calendar:
             customer_lead, security_lead, workload = self._get_delays()
             # plan_days() expect a number of days instead of a delay
@@ -193,7 +193,7 @@ class SaleOrderLine(models.Model):
         date_planned = date_deadline - timedelta(
             days=self.order_id.company_id.security_lead
         )
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if calendar:
             __, __, workload = self._get_delays()
             workload_days = self._delay_to_days(workload)
@@ -230,7 +230,7 @@ class SaleOrderLine(models.Model):
         return expected_date
 
     def _warehouse_calendar_expected_date(self, expected_date):
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if calendar:
             customer_lead, security_lead, workload = self._get_delays()
             td_customer_lead = timedelta(days=customer_lead)
