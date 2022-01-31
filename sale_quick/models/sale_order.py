@@ -56,6 +56,7 @@ class SaleOrder(models.Model):
         vals.update(
             {
                 "order_id": self.id,
+                "order_partner_id": self.partner_id.id,
             }
         )
         return super()._complete_quick_line_vals(vals, lines_key="order_line")
