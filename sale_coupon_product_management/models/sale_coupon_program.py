@@ -69,19 +69,24 @@ class SaleCouponProgram(models.Model):
 
     def _check_no_product_duplicate(self):
         for rec in self:
-            other_program_found = self.search_count(
-                [
-                    ("discount_line_product_id", "=", rec.discount_line_product_id.id),
-                    ("id", "!=", rec.id),
-                ]
-            )
-            if other_program_found:
-                raise UserError(
-                    _(
-                        "This reward line product is already used "
-                        "into another program."
-                    )
+            if rec.discount_line_product_id:
+                other_program_found = self.search_count(
+                    [
+                        (
+                            "discount_line_product_id",
+                            "=",
+                            rec.discount_line_product_id.id,
+                        ),
+                        ("id", "!=", rec.id),
+                    ]
                 )
+                if other_program_found:
+                    raise UserError(
+                        _(
+                            "This reward line product is already used "
+                            "into another program."
+                        )
+                    )
 
     def _force_values_on_product(self):
         product = self.discount_line_product_id
