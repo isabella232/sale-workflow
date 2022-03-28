@@ -35,6 +35,7 @@ class TestSaleDeliveryDate(Common):
         order.action_confirm()
         picking = order.picking_ids
         self.assertEqual(str(picking.scheduled_date.date()), FRIDAY)
+        self.assertEqual(str(picking.date_deadline.date()), FRIDAY)
         self.assertEqual(str(order.expected_date.date()), NEXT_MONDAY)
 
     @freeze_time(THURSDAY_BEFORE_CUTOFF)

@@ -14,13 +14,63 @@ _logger = logging.getLogger(__name__)
 
 
 class SaleOrderLine(models.Model):
+    """This override adds delays to the date_deadline and the date_planned.
+    As per this commit 57f805f71e9357870dfc2498c5ef72ebd8ab7273
+    - On pickings, the date_deadline represents the delivery date, and the
+      date_planned represents the preparation date (date_deadline - security_lead).
+    - On sale orders, date_planned represents the delivery date.
+    """
+
     _inherit = "sale.order.line"
 
     def _prepare_procurement_values(self, group_id=False):
+        # Here, we need to set date_deadline and date_planned correctly
+        # res["date_planned"] is order.date_order + lead_time
+        # So, date_planned should be:
+        # date_planned - lead, on which we apply the cutoff and then the workload with
+        # respect to the calendar (if any)
+        # Also, date_deadline should be:
+        # date_planned on which we apply the customer's time windows
         res = super()._prepare_procurement_values(group_id=group_id)
+        # There's 2 cases here:
+        # 1) commitment date is set, compute date_planned from date_deadline
+        # 2) commitment date isn't set, compute date_planned and date_deadline
+        if self.order_id.commitment_date:
+            res = self._prepare_procurement_values_commitment_date(res)
+        else:
+            res = self._prepare_procurement_values_no_commitment_date(res)
+        return res
+
+    def _prepare_procurement_values_commitment_date(res):
+        # 1) commitment_date - security_lead = order ready to be shipped (1)
+        # 2) {1} - workload
+        # 3) while {2} isn't a working day, remove 1 day
+        # 4) apply cutoff (with `keep_same_day` param)
+        return res
+
+    def _prepare_procurement_values_no_commitment_date(res):
+        # 1) apply cutoff -> saturday @ 9:00
+        # 2) apply wh workload (2 days delay (duration vs days)) -> monday @ 17h00
+        # while not working_day:
+        # date - 1 day
+        # apply cutoff -> monday @ 9h00 - timedelta(security_lead)
+        # -> date_planned @ friday @ 9h00
+        # 2.5) tuesday @ 17h00 # Add security_lead
+        # 3) apply customer time window -> friday @ 9:00
+        customer_lead, security_lead, workload = self._get_delays()
+        res = self._remove_delays_prepare_procurement_values(res)
         res = self._cutoff_time_delivery_prepare_procurement_values(res)
         res = self._warehouse_calendar_prepare_procurement_values(res)
         res = self._delivery_window_prepare_procurement_values(res)
+        return res
+
+    def _remove_delays_prepare_procurement_values(self, res):
+        date_planned = res.get("date_planned")
+        _, _, workload = self._get_delays()
+        if date_planned:
+            new_date_planned = date_planned - timedelta(days=workload)
+            res["date_planned"] = new_date_planned
+            res["date_deadline"] = new_date_planned
         return res
 
     def _cutoff_time_delivery_prepare_procurement_values(self, res):
@@ -35,7 +85,10 @@ class SaleOrderLine(models.Model):
             keep_same_day=bool(self.order_id.commitment_date),
         )
         if new_date_planned:
+            # TODO check if we have to update the date_deadline field
+            # when commitment_date is set
             res["date_planned"] = new_date_planned
+            res["date_deadline"] = new_date_planned
         return res
 
     def _warehouse_calendar_prepare_procurement_values(self, res):
@@ -46,23 +99,27 @@ class SaleOrderLine(models.Model):
             # plan_days() expect a number of days instead of a delay
             workload_days = self._delay_to_days(workload)
             td_workload = timedelta(days=workload)
-            # Remove the workload that has been added by odoo
-            date_planned -= td_workload
-            # Add the workload, with respect to the wh calendar
-            res["date_planned"] = calendar.plan_days(
+            date_planned_w_workload = calendar.plan_days(
                 workload_days, date_planned, compute_leaves=True
             )
+            date_planned_w_sec_lead = date_planned_w_workload + timedelta(
+                days=security_lead
+            )
+            res["date_planned"] = date_planned_w_workload
+            res["date_deadline"] = date_planned_w_sec_lead
         return res
 
     def _delivery_window_prepare_procurement_values(self, res):
         date_planned = res.get("date_planned")
-        if not date_planned:
+        date_deadline = res.get("date_deadline")
+        if not date_deadline and not date_planned:
             return res
-        new_date_planned = self._prepare_procurement_values_time_windows(
+        # as we haven't yet updated date deadline, throw the date planned
+        new_date_deadline = self._prepare_procurement_values_time_windows(
             fields.Datetime.to_datetime(date_planned)
         )
-        if new_date_planned:
-            res["date_planned"] = new_date_planned
+        if new_date_deadline:
+            res["date_deadline"] = new_date_deadline
         return res
 
     def _prepare_procurement_values_time_windows(self, date_planned):

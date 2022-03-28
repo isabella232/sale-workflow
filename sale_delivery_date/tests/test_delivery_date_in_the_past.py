@@ -88,7 +88,7 @@ class TestDeliveryDateInThePast(SavepointCase):
             order.action_confirm()
             picking = order.picking_ids
             self.assertEqual(str(order.expected_date.date()), "2021-10-25")
-            self.assertEqual(str(picking.scheduled_date.date()), "2021-10-24")
+            self.assertEqual(str(picking.date.date()), "2021-10-24")
             self.assertEqual(picking.expected_delivery_date, order.expected_date)
 
     def test_delivery_date_as_late_scheduled_date(self):
@@ -99,13 +99,13 @@ class TestDeliveryDateInThePast(SavepointCase):
             order = self._create_order(partner=self.customer_partner)
             order.action_confirm()
         picking = order.picking_ids
-        self.assertEqual(str(picking.scheduled_date.date()), "2021-10-14")
+        self.assertEqual(str(picking.date.date()), "2021-10-14")
         with freeze_time("2021-10-25"):
             # picking is handled late, order.commitment_date and
             # order.expected_date are outdated.
-            # expected_delivery_date is scheduled_date + security_lead
+            # expected_delivery_date is date + security_lead
             td_security_lead = timedelta(days=picking.company_id.security_lead)
-            expected_datetime = picking.scheduled_date + td_security_lead
+            expected_datetime = picking.date + td_security_lead
             self.assertEqual(picking.expected_delivery_date, expected_datetime)
 
     def test_delivery_date_as_date_done(self):
