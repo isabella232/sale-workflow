@@ -159,6 +159,11 @@ class SaleOrderLine(models.Model):
             )
             # add back the security lead
             expected_date += td_security_lead
+            # This should be the delivery date.
+            # It is up to the carrier to determine the hour with the customer
+            expected_date = expected_date.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
         return expected_date
 
     def _delivery_window_expected_date(self, expected_date):
