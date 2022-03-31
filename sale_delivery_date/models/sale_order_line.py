@@ -40,7 +40,7 @@ class SaleOrderLine(models.Model):
 
     def _warehouse_calendar_prepare_procurement_values(self, res):
         date_planned = res.get("date_planned")
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if date_planned and calendar:
             customer_lead, security_lead, workload = self._get_delays()
             # plan_days() expect a number of days instead of a delay
@@ -144,7 +144,7 @@ class SaleOrderLine(models.Model):
         return expected_date
 
     def _warehouse_calendar_expected_date(self, expected_date):
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if calendar:
             customer_lead, security_lead, workload = self._get_delays()
             td_customer_lead = timedelta(days=customer_lead)
@@ -159,6 +159,11 @@ class SaleOrderLine(models.Model):
             )
             # add back the security lead
             expected_date += td_security_lead
+            # This should be the delivery date.
+            # It is up to the carrier to determine the hour with the customer
+            expected_date = expected_date.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
         return expected_date
 
     def _delivery_window_expected_date(self, expected_date):
