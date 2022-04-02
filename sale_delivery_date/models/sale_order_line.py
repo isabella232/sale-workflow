@@ -49,7 +49,7 @@ class SaleOrderLine(models.Model):
         )
         res["date_planned"] = date_transfer_done
         # 2) Find the first date in the WH calendar (by going back in the past)
-        calendar = self.order_id.warehouse_id.calendar_id
+        calendar = self.order_id.warehouse_id.calendar2_id
         if calendar:
             res["date_planned"] = calendar.plan_days(
                 -1, res["date_planned"], compute_leaves=True
