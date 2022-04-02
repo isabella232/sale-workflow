@@ -17,13 +17,61 @@ class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     def _prepare_procurement_values(self, group_id=False):
+        # Update 'date_planned' and 'date_deadline' with respect to:
+        #   - the warehouse or partner cutoff time
+        #   - the warehouse calendar
+        #   - the delivery time window of the customer
+        # knowing that 'date_planned' is when the transfer starts to be processed
+        # internally and 'date_deadline' is when the goods will be delivered to
+        # the customer.
+        # There's 2 cases here:
+        #   1) commitment_date is set, compute date_planned from date_deadline
+        #   2) commitment_date isn't set, compute date_planned and date_deadline
         res = super()._prepare_procurement_values(group_id=group_id)
+        if self.order_id.commitment_date:
+            res = self._prepare_procurement_values_commitment_date(res)
+        else:
+            res = self._prepare_procurement_values_no_commitment_date(res)
+        return res
+
+    def _prepare_procurement_values_commitment_date(self, res):
+        """Set 'date_planned' according to 'commitment_date'.
+
+        We want to find the date when we could start working on the transfers
+        so we will be able to ship the goods to the customer in respect to the
+        `commitment_date`.
+        The 'date_deadline' is already set to the 'commitment_date' (that should
+        preferably fit the partner's time window if any).
+        """
+        # 1) compute the date when the transfer should be ready to be shipped
+        date_transfer_done = res["date_deadline"] - timedelta(
+            days=self.order_id.company_id.security_lead
+        )
+        res["date_planned"] = date_transfer_done
+        # 2) Find the first date in the WH calendar (by going back in the past)
+        calendar = self.order_id.warehouse_id.calendar_id
+        if calendar:
+            res["date_planned"] = calendar.plan_days(
+                -1, res["date_planned"], compute_leaves=True
+            )
+        # 3) Apply the partner or warehouse cutoff if any
+        res = self._cutoff_time_delivery_prepare_procurement_values(res)
+        return res
+
+    def _prepare_procurement_values_no_commitment_date(self, res):
+        """Set 'date_planned' and 'date_deadline' if no 'commitment_date'."""
+        res["date_planned"] = (
+            self.order_id.date_order
+            + timedelta(days=self.customer_lead or 0.0)
+            - timedelta(days=self.order_id.company_id.security_lead)
+        )
         res = self._cutoff_time_delivery_prepare_procurement_values(res)
         res = self._warehouse_calendar_prepare_procurement_values(res)
         res = self._delivery_window_prepare_procurement_values(res)
         return res
 
     def _cutoff_time_delivery_prepare_procurement_values(self, res):
+        """Apply warehouse or partner cutoff time on the date planned."""
         date_planned = res.get("date_planned")
         if not date_planned:
             return res
@@ -39,6 +87,7 @@ class SaleOrderLine(models.Model):
         return res
 
     def _warehouse_calendar_prepare_procurement_values(self, res):
+        """Update the date planned based on the warehouse calendar if any."""
         date_planned = res.get("date_planned")
         calendar = self.order_id.warehouse_id.calendar2_id
         if date_planned and calendar:
@@ -55,66 +104,49 @@ class SaleOrderLine(models.Model):
         return res
 
     def _delivery_window_prepare_procurement_values(self, res):
+        """Update the 'date_deadline' based on the customer delivery window."""
         date_planned = res.get("date_planned")
         if not date_planned:
             return res
-        new_date_planned = self._prepare_procurement_values_time_windows(
+        date_deadline = self._prepare_procurement_values_time_windows(
             fields.Datetime.to_datetime(date_planned)
         )
-        if new_date_planned:
-            res["date_planned"] = new_date_planned
+        if date_deadline:
+            res["date_deadline"] = date_deadline
         return res
 
     def _prepare_procurement_values_time_windows(self, date_planned):
-        # ORIGINAL
-        if (
-            self.order_id.partner_shipping_id.delivery_time_preference != "time_windows"
-            # if a commitment_date is set we don't change the result as lead
-            # time and delivery windows must have been considered
-            or self.order_id.commitment_date
-        ):
-            _logger.debug(
-                "Commitment date set on order %s. Delivery window not applied "
-                "on line.",
-                self.order_id.name,
-            )
-            return
-        # If no commitment date is set, we must consider next preferred delivery
-        #  window to postpone date_planned
+        """Return 'date_deadline' according to customer's time windows.
 
-        # Remove security lead time to ensure the delivery date (and not the
-        # date planned of the picking) will match delivery windows
-        date_planned_without_sec_lead = date_planned + timedelta(
-            days=self.order_id.company_id.security_lead
-        )
+        This computation is called only if no commitment_date is set and
+        if the customer's delivery time preference is "time windows".
+        It will return the effective delivery date by considering the next
+        preferred delivery time window of the customer.
+        """
+        if self.order_id.partner_shipping_id.delivery_time_preference != "time_windows":
+            return
         ops = self.order_id.partner_shipping_id
-        next_preferred_date = ops.next_delivery_window_start_datetime(
-            from_date=date_planned_without_sec_lead
-        )
-        # Add back security lead time
-        next_preferred_date_with_sec_lead = next_preferred_date - timedelta(
+        # As the 'date_planned' is the date when the work can start on the
+        # transfer, we have to add the security lead of the company to get
+        # the date indicating when the transfer will be ready to be shipped.
+        # From this date we will be able to compute the preferred delivery date
+        # of the customer.
+        date_transfer_done = date_planned + timedelta(
             days=self.order_id.company_id.security_lead
         )
-        if date_planned != next_preferred_date_with_sec_lead:
+        next_preferred_date = ops.next_delivery_window_start_datetime(
+            from_date=date_transfer_done
+        )
+        if date_transfer_done != next_preferred_date:
             _logger.debug(
                 "Delivery window applied for order %s. Date planned for line %s"
                 " rescheduled from %s to %s",
                 self.order_id.name,
                 self.name,
-                date_planned,
-                next_preferred_date_with_sec_lead,
+                date_transfer_done,
+                next_preferred_date,
             )
-            # if we have a new datetime proposed by a delivery time window,
-            # apply the warehouse/partner cutoff time
-            cutoff_datetime = self._prepare_procurement_values_cutoff_time(
-                next_preferred_date_with_sec_lead,
-                # the correct day has already been computed, only change
-                # the cut-off time
-                keep_same_day=True,
-            )
-            if cutoff_datetime:
-                return cutoff_datetime
-            return next_preferred_date_with_sec_lead
+            return next_preferred_date
         else:
             _logger.debug(
                 "Delivery window not applied for order %s. Date planned for line %s",
@@ -122,7 +154,7 @@ class SaleOrderLine(models.Model):
                 self.order_id.name,
                 self.name,
             )
-        return
+        return next_preferred_date
 
     def _delay_to_days(self, number_of_days):
         """Converts a delay to a number of days."""
@@ -136,7 +168,10 @@ class SaleOrderLine(models.Model):
         return customer_lead, security_lead, workload
 
     def _expected_date(self):
-        # Computes the expected date with respect to the WH calendar, if any.
+        # Computes the expected date with respect to:
+        #   - the warehouse or partner cutoff time
+        #   - the warehouse calendar
+        #   - the delivery time window of the customer
         expected_date = super()._expected_date()
         expected_date = self._cutoff_time_delivery_expected_date(expected_date)
         expected_date = self._warehouse_calendar_expected_date(expected_date)
