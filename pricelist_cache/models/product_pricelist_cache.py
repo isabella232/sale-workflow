@@ -41,21 +41,16 @@ class PricelistCache(models.Model):
     )
     price = fields.Float()
 
-    def _update_existing_records(self, product_prices):
-        """Update existing records with provided prices.
-
-        Args:
-            - self : The recordset of cache records to update
-            - product_prices : The new prices to apply
-        """
-        # Write everything in single transaction
-        values = [
+    def _get_update_values(self, product_prices):
+        return [
             sql.SQL(", ").join(
                 map(sql.Literal, (record.id, product_prices[record.product_id.id]))
             )
             for record in self
         ]
-        query = sql.SQL(
+
+    def _get_update_query(self):
+        return sql.SQL(
             """
             UPDATE
                 product_pricelist_cache AS pricelist_cache
@@ -65,12 +60,39 @@ class PricelistCache(models.Model):
                 AS c(id, price)
             WHERE
                 c.id = pricelist_cache.id;
+            """
+        )
+
+    def _update_existing_records(self, product_prices):
+        """Update existing records with provided prices.
+
+        Args:
+            - self : The recordset of cache records to update
+            - product_prices : The new prices to apply
         """
-        ).format(sql.SQL("), (").join(values))
+        values = self._get_update_values(product_prices)
+        # Write everything in single transaction
+        query = self._get_update_query().format(sql.SQL("), (").join(values))
         self.flush()
         self.env.cr.execute(query)
         self.invalidate_cache(["price"])
         self.recompute()
+
+    def _get_create_values(self, pricelist_id, product_ids, product_prices):
+        return [
+            sql.SQL(", ").join(
+                map(sql.Literal, (p_id, pricelist_id, product_prices[p_id]))
+            )
+            for p_id in product_ids
+        ]
+
+    def _get_create_query(self):
+        return sql.SQL(
+            """
+            INSERT INTO product_pricelist_cache (product_id, pricelist_id, price)
+            VALUES ({});
+            """
+        )
 
     def _create_cache_records(self, pricelist_id, product_ids, product_prices):
         """Create price cache records for a given pricelist, applied to a list of
@@ -81,22 +103,18 @@ class PricelistCache(models.Model):
             - product_ids : A list of product ids to cache
             - product_prices : A dict containing the prices for each product
         """
-        values = [
-            sql.SQL(", ").join(
-                map(sql.Literal, (p_id, pricelist_id, product_prices[p_id]))
-            )
-            for p_id in product_ids
-        ]
+        values = self._get_create_values(pricelist_id, product_ids, product_prices)
         if values:
             # create_everything from a single transaction
-            query = sql.SQL(
-                """
-                INSERT INTO product_pricelist_cache (product_id, pricelist_id, price)
-                VALUES ({});
-            """
-            ).format(sql.SQL("), (").join(values))
+            query = self._get_create_query().format(sql.SQL("), (").join(values))
             self.flush()
             self.env.cr.execute(query)
+
+    def _get_existing_cache_domain(self, pricelist_id, product_ids):
+        return [
+            ("pricelist_id", "=", pricelist_id),
+            ("product_id", "in", product_ids),
+        ]
 
     def _update_pricelist_cache(self, pricelist_id, product_prices):
         """Updates the cache, for a given pricelist, and product prices.
@@ -109,10 +127,7 @@ class PricelistCache(models.Model):
         product_ids = list(product_prices.keys())
         # First, update existing records
         existing_records = self.search(
-            [
-                ("pricelist_id", "=", pricelist_id),
-                ("product_id", "in", product_ids),
-            ]
+            self._get_existing_cache_domain(pricelist_id, product_ids)
         )
         if existing_records:
             existing_records._update_existing_records(product_prices)
@@ -209,7 +224,13 @@ class PricelistCache(models.Model):
         # Re-create everything
         self.create_full_cache()
 
-    def get_cached_prices_for_pricelist(self, pricelist, products):
+    def _get_cached_prices_domain(self, pricelist, products):
+        return [
+            ("pricelist_id", "=", pricelist.id),
+            ("product_id", "in", products.ids),
+        ]
+
+    def get_cached_prices_for_pricelist(self, pricelist, products, **kwargs):
         """Retrieves product prices for a given pricelist."""
         # As some items might have been skipped during product_pricelist_item
         # updates, some cached prices might be wrong, since those records
@@ -224,12 +245,8 @@ class PricelistCache(models.Model):
         )
         self._update_pricelist_items_cache(need_update_items)
         # Retrieve cache for the current pricelist first
-        cached_prices = self.search(
-            [
-                ("pricelist_id", "=", pricelist.id),
-                ("product_id", "in", products.ids),
-            ]
-        )
+        domain = self._get_cached_prices_domain(pricelist, products, **kwargs)
+        cached_prices = self.search(domain)
         # Then, retrieves prices from parent pricelists
         remaining_products = products - cached_prices.mapped("product_id")
         parent_pricelists = pricelist._get_parent_pricelists()

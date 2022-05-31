@@ -23,6 +23,10 @@ class PricelistCacheWizard(models.TransientModel):
         else:
             self.pricelist_id = False
 
+    def _get_cached_prices(self, products):
+        cache_model = self.env["product.pricelist.cache"]
+        return cache_model.get_cached_prices_for_pricelist(self.pricelist_id, products)
+
     @api.onchange("pricelist_id", "product_id")
     def _onchange_product_pricelist(self):
         pricelist = self.pricelist_id
@@ -37,10 +41,7 @@ class PricelistCacheWizard(models.TransientModel):
             products = self.env["product.product"].search([])
         if partner and not partner.property_product_pricelist == pricelist:
             partner = False
-        cache_model = self.env["product.pricelist.cache"]
-        cache_selfs = cache_model.get_cached_prices_for_pricelist(
-            self.pricelist_id, products
-        )
+        cache_selfs = self._get_cached_prices(products)
         # TODO fields are flushed when get_cached_prices_for_pricelist
         # is called. I wonder is this is because of the use of flush()
         # in the code.

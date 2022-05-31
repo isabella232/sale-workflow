@@ -3,12 +3,11 @@
 
 from freezegun import freeze_time
 
-from .common import TestPricelistCacheCommon, check_duplicates
+from .common import TestPricelistCacheCommon
 
 
 @freeze_time("2021-03-15")
 class TestPricelistCache(TestPricelistCacheCommon):
-    @check_duplicates
     def test_base_caching(self):
         cache_model = self.cache_model
         # product 6, list 0: cached, price 100.0
@@ -30,11 +29,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
         self.assertTrue(p6_list1_cache)
         self.assertEqual(p6_list1_cache.price, 75.0)
         # product 6, list 2 : Now cached, price 50.0
-        p6_list2_cache = cache_model.search(
-            [
-                ("product_id", "=", self.p6.id),
-                ("pricelist_id", "=", self.list2.id),
-            ]
+        p6_list2_cache = cache_model.get_cached_prices_for_pricelist(
+            self.list2, self.p6
         )
         self.assertTrue(p6_list2_cache)
         self.assertEqual(p6_list2_cache.price, 50.0)
@@ -106,13 +102,13 @@ class TestPricelistCache(TestPricelistCacheCommon):
         )
         self.assertTrue(p8_list0_cache)
         self.assertEqual(p8_list0_cache.price, 100.0)
+        self.check_duplicates()
 
     # Since we do not handle pricelist item updates anymore,
     # these three tests will be adapted and re-enabled afterwards.
     # test_update_pricelist_item, test_update_product_price,
     # and test_retrieve_skipped_cache
 
-    # @check_duplicates
     # def test_update_pricelist_item(self):
     #     cache_model = self.cache_model
     #     # case 1, product price is not set on a parent pricelist
@@ -155,8 +151,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
     #         ]
     #     )
     #     self.assertEqual(p6_cache.price, 25.0)
+    #     self.check_duplicates()
 
-    # @check_duplicates
     # def test_update_product_price(self):
     #     self.p7.write({"list_price": 42})
     #     # p6 should be updated only for list0 and list5
@@ -202,8 +198,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
     #         ]
     #     )
     #     self.assertEqual(p7_l5_cache.price, 62)
+    #     self.check_duplicates()
 
-    @check_duplicates
     def test_retrieve_price_list(self):
         products = self.products
         cache_model = self.cache_model
@@ -248,8 +244,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
         # p8 price should have been fetched from list0 cache.
         l4_p8_cache = l4_cache.filtered(lambda c: c.product_id == self.p8)
         self.assertEqual(l0_p8_cache, l4_p8_cache)
+        self.check_duplicates()
 
-    # @check_duplicates
     # @freeze_time("2021-04-15")
     # def test_retrieve_skipped_cache(self):
     #     # When a pricelist item is updated, if it's based on dates, then the
@@ -276,8 +272,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
     #     # should have updated it "on the fly"
     #     self.assertEqual(item9_cache2.price, 32.0)
     #     self.assertFalse(item9.pricelist_cache_update_skipped)
+    #     self.check_duplicates()
 
-    @check_duplicates
     def test_pricelist_methods(self):
         # test _get_root_pricelist_ids
         pricelist_model = self.env["product.pricelist"]
@@ -335,6 +331,7 @@ class TestPricelistCache(TestPricelistCacheCommon):
         items -= self.env.ref("pricelist_cache.item7")
         self.assertFalse(items._has_date_range())
         # test _get_pricelist_products_group
+        items = self.list3._recursive_get_items(self.p6)
         expected_groups = {
             self.list0.id: self.p6.ids,
             self.list1.id: self.p6.ids,
@@ -346,8 +343,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
             expected_product_ids,
         ) in expected_groups.items():
             self.assertEqual(expected_product_ids, groups[expected_pricelist_id])
+        self.check_duplicates()
 
-    @check_duplicates
     @freeze_time("2021-04-15")
     def test_cache_at_product_create(self):
         """Ensures that cache prices are created at product creation on each global
@@ -384,8 +381,8 @@ class TestPricelistCache(TestPricelistCacheCommon):
         )
         self.assertTrue(list5_cache)
         self.assertEqual(list5_cache.price, 62)
+        self.check_duplicates()
 
-    @check_duplicates
     @freeze_time("2021-04-15")
     def test_cache_at_pricelist_create(self):
         # create pricelist child of list0, no item, no cache created
@@ -479,16 +476,9 @@ class TestPricelistCache(TestPricelistCacheCommon):
         pricelist = pricelist_model.create({"name": "test4"})
         self.assertTrue(pricelist._is_global_pricelist())
         product_prices = pricelist._get_product_prices(self.products.ids)
-        for product_id, price in product_prices.items():
-            cache = self.cache_model.search(
-                [
-                    ("product_id", "=", product_id),
-                    ("pricelist_id", "=", pricelist.id),
-                ]
-            )
-            self.assertEqual(cache.price, price)
+        self.assert_prices_equal(pricelist.id, product_prices)
+        self.check_duplicates()
 
-    @check_duplicates
     def test_reset_cache(self):
         """Ensures that the sequence is reset when cache is reset, to avoid reaching
         the limit of ids, since the id is an int, with hard limit to 2,147,483,627.
@@ -497,3 +487,4 @@ class TestPricelistCache(TestPricelistCacheCommon):
         self.cache_model.cron_reset_pricelist_cache()
         new_max_cache_id = max(self.cache_model.search([]).ids)
         self.assertEqual(new_max_cache_id, old_max_cache_id)
+        self.check_duplicates()
