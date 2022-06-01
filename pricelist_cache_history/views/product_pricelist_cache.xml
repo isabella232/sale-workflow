@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Camptocamp SA
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="product_pricelist_cache_view_tree" model="ir.ui.view">
+      <field name="name">product.pricelist.cache.tree.inherit</field>
+      <field name="model">product.pricelist.cache</field>
+      <field
+            name="inherit_id"
+            ref="pricelist_cache.product_pricelist_cache_view_tree"
+        />
+      <field name="arch" type="xml">
+        <field name="price" position="after">
+          <field name="date_start" />
+          <field name="date_end" />
+        </field>
+      </field>
+    </record>
+
+
+</odoo>
