@@ -42,7 +42,7 @@ class SaleInvoicePlan(models.Model):
         help="Last installment will create invoice use remaining amount",
     )
     percent = fields.Float(
-        digits="Product Unit of Measure",
+        digits="Purchase Invoice Plan Percent",
         help="This percent will be used to calculate new quantity",
     )
     amount = fields.Float(
@@ -69,6 +69,10 @@ class SaleInvoicePlan(models.Model):
         compute="_compute_invoiced",
         help="If this line already invoiced",
     )
+    no_edit = fields.Boolean(
+        compute="_compute_no_edit",
+    )
+
     _sql_constraint = [
         (
             "unique_instalment",
@@ -76,6 +80,14 @@ class SaleInvoicePlan(models.Model):
             "Installment must be unique on invoice plan",
         )
     ]
+
+    def _no_edit(self):
+        self.ensure_one()
+        return self.invoiced
+
+    def _compute_no_edit(self):
+        for rec in self:
+            rec.no_edit = rec._no_edit()
 
     @api.depends("percent")
     def _compute_amount(self):
@@ -164,3 +176,16 @@ class SaleInvoicePlan(models.Model):
     def _get_plan_qty(self, order_line, percent):
         plan_qty = order_line.product_uom_qty * (percent / 100)
         return plan_qty
+
+    def unlink(self):
+        lines = self.filtered("no_edit")
+        if lines:
+            installments = [str(x) for x in lines.mapped("installment")]
+            raise UserError(
+                _(
+                    "Installment %s: already used and not allowed to delete.\n"
+                    "Please discard changes."
+                )
+                % ", ".join(installments)
+            )
+        return super().unlink()
