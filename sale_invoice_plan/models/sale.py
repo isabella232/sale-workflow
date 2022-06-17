@@ -25,6 +25,21 @@ class SaleOrder(models.Model):
         compute="_compute_ip_invoice_plan",
         help="At least one invoice plan line pending to create invoice",
     )
+    ip_total_percent = fields.Float(
+        compute="_compute_ip_total",
+        string="Percent",
+    )
+    ip_total_amount = fields.Monetary(
+        compute="_compute_ip_total",
+        string="Total Amount",
+    )
+
+    @api.depends("invoice_plan_ids")
+    def _compute_ip_total(self):
+        for rec in self:
+            installments = rec.invoice_plan_ids.filtered("installment")
+            rec.ip_total_percent = sum(installments.mapped("percent"))
+            rec.ip_total_amount = sum(installments.mapped("amount"))
 
     def _compute_ip_invoice_plan(self):
         for rec in self:
@@ -38,6 +53,14 @@ class SaleOrder(models.Model):
                     rec.ip_invoice_plan = True
                     continue
             rec.ip_invoice_plan = False
+
+    @api.constrains("invoice_plan_ids")
+    def _check_ip_total_percent(self):
+        for rec in self:
+            installments = rec.invoice_plan_ids.filtered("installment")
+            ip_total_percent = sum(installments.mapped("percent"))
+            if float_round(ip_total_percent, 0) > 100:
+                raise UserError(_("Invoice plan total percentage must not exceed 100%"))
 
     @api.constrains("state")
     def _check_invoice_plan(self):
@@ -60,7 +83,7 @@ class SaleOrder(models.Model):
         self.invoice_plan_ids.unlink()
         invoice_plans = []
         Decimal = self.env["decimal.precision"]
-        prec = Decimal.precision_get("Product Unit of Measure")
+        prec = Decimal.precision_get("Purchase Invoice Plan Percent")
         percent = float_round(1.0 / num_installment * 100, prec)
         percent_last = 100 - (percent * (num_installment - 1))
         # Advance
