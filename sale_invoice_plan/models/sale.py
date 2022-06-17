@@ -34,6 +34,7 @@ class SaleOrder(models.Model):
         string="Total Amount",
     )
 
+    @api.depends("invoice_plan_ids")
     def _compute_ip_total(self):
         for rec in self:
             installments = rec.invoice_plan_ids.filtered("installment")
