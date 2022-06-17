@@ -42,7 +42,7 @@ class SaleInvoicePlan(models.Model):
         help="Last installment will create invoice use remaining amount",
     )
     percent = fields.Float(
-        digits="Purchase Invoice Plan Percent",
+        digits="Sales Invoice Plan Percent",
         help="This percent will be used to calculate new quantity",
     )
     amount = fields.Float(
@@ -59,11 +59,7 @@ class SaleInvoicePlan(models.Model):
         string="Invoices",
         readonly=True,
     )
-    amount_invoiced = fields.Float(
-        compute="_compute_invoiced",
-        store=True,
-        readonly=False,
-    )
+    amount_invoiced = fields.Float(compute="_compute_invoiced")
     to_invoice = fields.Boolean(
         string="Next Invoice",
         compute="_compute_to_invoice",
@@ -161,6 +157,7 @@ class SaleInvoicePlan(models.Model):
         move = invoice_move.with_context(check_move_validity=False)
         for line in move.invoice_line_ids:
             self._update_new_quantity(line, percent)
+        move.line_ids.filtered("exclude_from_invoice_tab").unlink()
         move._move_autocomplete_invoice_lines_values()  # recompute dr/cr
 
     def _update_new_quantity(self, line, percent):
