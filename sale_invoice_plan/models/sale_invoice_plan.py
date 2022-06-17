@@ -1,4 +1,4 @@
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
@@ -45,6 +45,12 @@ class SaleInvoicePlan(models.Model):
         digits="Product Unit of Measure",
         help="This percent will be used to calculate new quantity",
     )
+    amount = fields.Float(
+        digits="Product Price",
+        compute="_compute_amount",
+        inverse="_inverse_amount",
+        help="This amount will be used to calculate the percent",
+    )
     invoice_move_ids = fields.Many2many(
         "account.move",
         relation="sale_invoice_plan_invoice_rel",
@@ -70,6 +76,33 @@ class SaleInvoicePlan(models.Model):
             "Installment must be unique on invoice plan",
         )
     ]
+
+    @api.depends("percent")
+    def _compute_amount(self):
+        for rec in self:
+            if rec.last:
+                installments = rec.sale_id.invoice_plan_ids.filtered(
+                    lambda l: l.invoice_type == "installment"
+                )
+                prev_amount = sum((installments - rec).mapped("amount"))
+                rec.amount = rec.sale_id.amount_untaxed - prev_amount
+                continue
+            rec.amount = rec.percent * rec.sale_id.amount_untaxed / 100
+
+    @api.onchange("amount", "percent")
+    def _inverse_amount(self):
+        for rec in self:
+            if rec.sale_id.amount_untaxed != 0:
+                if rec.last:
+                    installments = rec.sale_id.invoice_plan_ids.filtered(
+                        lambda l: l.invoice_type == "installment"
+                    )
+                    prev_percent = sum((installments - rec).mapped("percent"))
+                    rec.percent = 100 - prev_percent
+                    continue
+                rec.percent = rec.amount / rec.sale_id.amount_untaxed * 100
+                continue
+            rec.percent = 0
 
     def _compute_to_invoice(self):
         """If any invoice is in draft/open/paid do not allow to create inv.
@@ -101,26 +134,33 @@ class SaleInvoicePlan(models.Model):
         if self.last:  # For last install, let the system do the calc.
             return
         percent = self.percent
-        move = invoice_move.with_context(**{"check_move_validity": False})
+        move = invoice_move.with_context(check_move_validity=False)
         for line in move.invoice_line_ids:
-            if not len(line.sale_line_ids) >= 0:
-                raise UserError(_("No matched order line for invoice line"))
-            order_line = fields.first(line.sale_line_ids)
-            if order_line.is_downpayment:  # based on 1 unit
-                line.write({"quantity": -percent / 100})
-            else:
-                plan_qty = order_line.product_uom_qty * (percent / 100)
-                prec = order_line.product_uom.rounding
-                if float_compare(plan_qty, line.quantity, prec) == 1:
-                    raise ValidationError(
-                        _(
-                            "Plan quantity: %(plan_qty)s, exceed invoiceable quantity: "
-                            "%(invoiceable_qty)s"
-                            "\nProduct should be delivered before invoice"
-                        )
-                        % {"plan_qty": plan_qty, "invoiceable_qty": line.quantity}
+            self._update_new_quantity(line, percent)
+        move._move_autocomplete_invoice_lines_values()  # recompute dr/cr
+
+    def _update_new_quantity(self, line, percent):
+        """Hook function"""
+        if not len(line.sale_line_ids) >= 0:
+            raise UserError(_("No matched order line for invoice line"))
+        order_line = fields.first(line.sale_line_ids)
+        if order_line.is_downpayment:  # based on 1 unit
+            line.write({"quantity": -percent / 100})
+        else:
+            plan_qty = self._get_plan_qty(order_line, percent)
+            prec = order_line.product_uom.rounding
+            if float_compare(abs(plan_qty), abs(line.quantity), prec) == 1:
+                raise ValidationError(
+                    _(
+                        "Plan quantity: %(plan_qty)s, exceed invoiceable quantity: "
+                        "%(invoiceable_qty)s"
+                        "\nProduct should be delivered before invoice"
                     )
-                line.write({"quantity": plan_qty})
-        # Call this method to recompute dr/cr lines
-        move.line_ids.filtered("exclude_from_invoice_tab").unlink()
-        move._move_autocomplete_invoice_lines_values()
+                    % {"plan_qty": plan_qty, "invoiceable_qty": line.quantity}
+                )
+            line.write({"quantity": plan_qty})
+
+    @api.model
+    def _get_plan_qty(self, order_line, percent):
+        plan_qty = order_line.product_uom_qty * (percent / 100)
+        return plan_qty

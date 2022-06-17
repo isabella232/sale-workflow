@@ -89,31 +89,6 @@ class TestSaleInvoicePlan(common.TestSaleCommon):
                 "pricelist_id": cls.env.ref("product.list0").id,
             }
         )
-        # Create an SO for product delivery
-        cls.so_product = sale_obj.with_user(
-            cls.company_data["default_user_salesman"]
-        ).create(
-            {
-                "partner_id": cls.partner_customer_usd.id,
-                "partner_invoice_id": cls.partner_customer_usd.id,
-                "partner_shipping_id": cls.partner_customer_usd.id,
-                "use_invoice_plan": True,
-                "order_line": [
-                    (
-                        0,
-                        0,
-                        {
-                            "name": cls.product_deliver.name,
-                            "product_id": cls.product_deliver.id,
-                            "product_uom_qty": 10,
-                            "product_uom": cls.product_deliver.uom_id.id,
-                            "price_unit": cls.product_deliver.list_price,
-                        },
-                    )
-                ],
-                "pricelist_id": cls.env.ref("product.list0").id,
-            }
-        )
 
     @classmethod
     def setUpClassicProducts(cls):
@@ -223,7 +198,7 @@ class TestSaleInvoicePlan(common.TestSaleCommon):
         except ValidationError as e:
             _logger.info(_("No installment raises following error : %s"), e.name)
         # Create Invoice Plan 3 installment
-        num_installment = 3
+        num_installment = 5
         f.num_installment = num_installment
         # Test 3 types of interval
         for interval_type in ["month", "year", "day"]:
@@ -240,11 +215,19 @@ class TestSaleInvoicePlan(common.TestSaleCommon):
                 num_installment,
                 "Wrong number of installment created",
             )
+        # Change plan, so that the 1st installment is 1000 and 5th is 3000
+        self.assertEqual(len(self.so_service.invoice_plan_ids), 5)
+        self.so_service.invoice_plan_ids[0].amount = 280.0
+        self.so_service.invoice_plan_ids[4].amount = 840.0
         # Confirm the SO
         self.so_service.action_confirm()
         # Create one invoice
         make_wizard = self.env["sale.make.planned.invoice"].create({})
         make_wizard.with_context(**ctx).create_invoices_by_plan()
+        self.assertEqual(
+            self.so_service.amount_total,
+            sum(self.so_service.invoice_ids.mapped("amount_total")),
+        )
         invoices = self.so_service.invoice_ids
         self.assertEqual(len(invoices), 1, "Only 1 invoice should be created")
 
