@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <tree editable="bottom">
                 <field name="no_edit" invisible="1" />
+                <field name="analytic_account_id" />
                 <field
                     name="installment"
                     attrs="{'readonly': [('no_edit', '=', True)]}"
@@ -129,6 +130,7 @@
             <search string="Search Sales Invoice Plan Lines">
                 <field name="partner_id" />
                 <field name="sale_id" />
+                <field name="analytic_account_id" />
                 <field name="installment" />
                 <separator />
                 <filter
@@ -155,6 +157,12 @@
                         context="{'group_by':'sale_id'}"
                     />
                     <filter
+                        string="Analytic Account"
+                        name="analytic_account_id"
+                        domain="[]"
+                        context="{'group_by':'analytic_account_id'}"
+                    />
+                    <filter
                         string="Installment"
                         name="install"
                         domain="[]"
@@ -176,6 +184,7 @@
         <field name="arch" type="xml">
             <tree edit="0" create="0" delete="0">
                 <field name="sale_id" />
+                <field name="analytic_account_id" />
                 <field name="installment" />
                 <field name="plan_date" />
                 <field name="invoice_type" />
